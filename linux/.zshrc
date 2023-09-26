@@ -24,23 +24,27 @@ source $ZSH/oh-my-zsh.sh
 # python
 alias python=python3
 
-#logo-ls
+# logo-ls
 alias ls='logo-ls'
 alias la='logo-ls -A'
 alias lla='logo-ls -la'
 
-#git
+# git
 alias gs='git status'
+alias ga='git add'
 alias gcm='git commit -m'
 alias gco='git checkout'
 alias gcob='git checkout -b'
 
-## Scripts:
+# scripts:
 alias sl='bash ~/scripts/scripts_list.sh'
 alias us='bash ~/scripts/update_system.sh'
 alias clup='bash ~/scripts/cleanup.sh'
 alias diu='bash ~/scripts/disk_usage.sh'
 
+# system:
+alias logout='gnome-session-quit'
+alias shutdown='gnome-session-quit --power-off'
 
 ## Functions:
 
