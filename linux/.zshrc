@@ -43,8 +43,10 @@ alias clup='bash ~/scripts/cleanup.sh'
 alias diu='bash ~/scripts/disk_usage.sh'
 
 # system:
-alias logout='gnome-session-quit'
-alias shutdown='gnome-session-quit --power-off'
+alias sys_logout='gnome-session-quit --no-prompt'
+alias sys_shutdown='systemctl poweroff'
+alias sys_restart='systemctl reboot'
+
 
 ## Functions:
 
