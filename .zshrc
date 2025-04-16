@@ -15,7 +15,7 @@ fi
 # ⚙️ ── oh-my-zsh Meta ─────────────────────────────────────────────────────
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf-tab)
 _zshrc_timing_log "oh-my-zsh meta setup"
 
 # 🌍 ── Environment ────────────────────────────────────────────────────────
@@ -36,9 +36,11 @@ setopt SHARE_HISTORY            # Sync history across terminal sessions
 _zshrc_timing_log "history"
 
 # 🍺 ── Homebrew ───────────────────────────────────────────────────────────
-if [[ -d "$HOME/.linuxbrew" ]]; then
+if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
   eval "$($HOME/.linuxbrew/bin/brew shellenv)"
-elif [[ -d "/opt/homebrew" ]]; then
+elif [[ -x "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 _zshrc_timing_log "homebrew"
@@ -91,6 +93,7 @@ alias ga='git add'
 alias gc='git commit'
 alias gp='git push'
 alias gpl='git pull --rebase'
+alias gpr='git pull --rebase --autostash'
 alias gs='git status'
 alias gb='git branch'
 alias gco='git checkout'
@@ -100,6 +103,10 @@ _zshrc_timing_log "git aliases"
 # 🛠️ ── Aliases: Utility ─────────────────────────────────────────
 alias reload='source ~/.zshrc'
 alias please='sudo $(fc -ln -1)'
+alias py='python3'
+alias ipy='ipython'
+alias rm='rm -i'
+
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ─────────────────────────────────────────
@@ -116,9 +123,15 @@ alias zshrc='SOURCE_TIMING=true source ~/.zshrc'
 mkcd() { mkdir -p "$1" && cd "$1"; }
 _zshrc_timing_log "functions"
 
-# 💬 ── Prompt (optional override) ─────────────────────────────────────────
-# PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
-_zshrc_timing_log "prompt"
+# 💬 ── Prompt (starship) ─────────────────────────────────────────────────
+# if command -v starship >/dev/null 2>&1; then
+#   eval "$(starship init zsh)"
+#   export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+# else
+#   # fallback prompt
+#   PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
+# fi
+# _zshrc_timing_log "prompt"
 
 # ⌨️ ── Keybindings ────────────────────────────────────────────────────────
 bindkey '^H' backward-kill-word          # Ctrl+Backspace
@@ -128,6 +141,12 @@ _zshrc_timing_log "keybindings"
 # 🔄 ── Completion ─────────────────────────────────────────────────────────
 autoload -U compinit && compinit
 _zshrc_timing_log "compinit"
+
+# 🧭 ── zoxide (smart cd) ──────────────────────────────────────────────────
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+_zshrc_timing_log "zoxide"
 
 # 🕒 ── Final Timing Output ────────────────────────────────────────────────
 if [[ $SOURCE_TIMING == "true" ]]; then
