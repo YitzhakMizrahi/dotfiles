@@ -1,0 +1,25 @@
+[user]
+  name = ymizrahi
+  email = mizrahi.yitzchak@gmail.com
+
+[pull]
+  rebase = true
+
+[core]
+  pager = delta --dark
+
+[interactive]
+  diffFilter = delta --color-only
+
+[alias]
+  lg = log --oneline --graph --decorate --all
+  s = status -sb
+  a = add -p
+  cm = commit -m
+  co = checkout
+  br = branch
+  pl = pull
+  ps = push
+
+[safe]
+  directory = *
