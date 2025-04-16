@@ -1,0 +1,36 @@
+# Ignore OS junk
+.DS_Store
+Thumbs.db
+
+# SSH keys and sensitive files
+*.pem
+*.key
+*.crt
+*.enc
+*.gpg
+*.asc
+*.pub
+*.ppk
+*.bak
+
+# Log files and cache
+*.log
+*.swp
+*.tmp
+.cache/
+.zcompdump*
+.zsh_history
+.zsh_sessions
+
+# Python/venv leftovers (just in case)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+
+# Local overrides
+local.zsh
+*.local
