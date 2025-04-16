@@ -1,0 +1,29 @@
+classic: false
+
+blocks:
+  - permission
+  - size
+  - date
+  - name
+
+color:
+  when: always
+  theme: default
+
+date: '+%d %b %H:%M' # Example: 16 Apr 20:48
+
+icons:
+  when: always
+  theme: fancy
+  separator: "  "
+
+layout: grid
+
+sorting:
+  column: name
+  dir-grouping: first
+
+size: short
+
+header: false
+literal: false

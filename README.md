@@ -16,7 +16,11 @@ Clone and symlink:
 
 ```bash
 git clone git@github.com:YitzhakMizrahi/dotfiles.git ~/.dotfiles
-ln -s ~/.dotfiles/.zshrc ~/.zshrc
-ln -s ~/.dotfiles/.tmux.conf ~/.tmux.conf
-ln -s ~/.dotfiles/.gitconfig ~/.gitconfig
+ln -sf ~/.dotfiles/.zshrc ~/.zshrc
+ln -sf ~/.dotfiles/.tmux.conf ~/.tmux.conf
+ln -sf ~/.dotfiles/.gitconfig ~/.gitconfig
+ln -sf ~/.dotfiles/.config/yazi ~/.config/yazi
+ln -sf ~/.dotfiles/.config/lazygit ~/.config/lazygit
+ln -sf ~/.dotfiles/.config/gh ~/.config/gh
+
 

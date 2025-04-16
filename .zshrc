@@ -12,14 +12,24 @@ else
   function _zshrc_timing_log() { :; }
 fi
 
-# ⚙️ ── oh-my-zsh Meta ─────────────────────────────────────────────────────
-export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="robbyrussell"
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf-tab)
-_zshrc_timing_log "oh-my-zsh meta setup"
+# 🌐 ── Zinit Plugin Manager ──────────────────────────────────────────────
+if [[ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh" ]]; then
+  echo "Zinit not found, please run the install script again."
+else
+  source "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh"
+fi
+
+# Load plugins
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light Aloxaf/fzf-tab
+zinit ice wait"0" atinit"echo ⚡ starship loading..."
+zinit light starship/starship
+_zshrc_timing_log "zinit"
 
 # 🌍 ── Environment ────────────────────────────────────────────────────────
 export PATH="$HOME/bin:$PATH"
+export PATH="$HOME/.dotfiles/scripts:$PATH"
 export TERM="xterm-256color"
 _zshrc_timing_log "env setup"
 
@@ -60,10 +70,6 @@ nvm() { unset -f nvm; source "$NVM_DIR/nvm.sh"; nvm "$@"; }
 node() { unset -f node; source "$NVM_DIR/nvm.sh"; node "$@"; }
 npm() { unset -f npm; source "$NVM_DIR/nvm.sh"; npm "$@"; }
 _zshrc_timing_log "nvm (lazy)"
-
-# 💻 ── oh-my-zsh Init ─────────────────────────────────────────────────────
-source $ZSH/oh-my-zsh.sh
-_zshrc_timing_log "oh-my-zsh"
 
 # 🔐 ── SSH Agent ──────────────────────────────────────────────────────────
 if ! pgrep -u "$USER" ssh-agent > /dev/null; then
@@ -106,7 +112,6 @@ alias please='sudo $(fc -ln -1)'
 alias py='python3'
 alias ipy='ipython'
 alias rm='rm -i'
-
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ─────────────────────────────────────────
@@ -124,14 +129,14 @@ mkcd() { mkdir -p "$1" && cd "$1"; }
 _zshrc_timing_log "functions"
 
 # 💬 ── Prompt (starship) ─────────────────────────────────────────────────
-# if command -v starship >/dev/null 2>&1; then
-#   eval "$(starship init zsh)"
-#   export STARSHIP_CONFIG="$HOME/.config/starship.toml"
-# else
-#   # fallback prompt
-#   PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
-# fi
-# _zshrc_timing_log "prompt"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+  export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+else
+  # fallback prompt
+  PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
+fi
+_zshrc_timing_log "prompt"
 
 # ⌨️ ── Keybindings ────────────────────────────────────────────────────────
 bindkey '^H' backward-kill-word          # Ctrl+Backspace
@@ -146,6 +151,7 @@ _zshrc_timing_log "compinit"
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
+alias zi='__zoxide_zi'
 _zshrc_timing_log "zoxide"
 
 # 🕒 ── Final Timing Output ────────────────────────────────────────────────
