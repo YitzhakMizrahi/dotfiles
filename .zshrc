@@ -149,7 +149,7 @@ _zshrc_timing_log "compinit"
 
 # 🧭 ── zoxide (smart cd) ──────────────────────────────────────────────────
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
+  eval "$(zoxide init --cmd cd zsh)"
 fi
 alias zi='__zoxide_zi'
 _zshrc_timing_log "zoxide"
