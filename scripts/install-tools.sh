@@ -44,7 +44,7 @@ install_homebrew() {
 # ── Install Brew Tools for macOS (includes system-level) ──
 install_brew_tools_for_mac() {
   local base_tools=(git zsh tmux curl wget)  # Often preinstalled, but safe to re-check
-  local dev_tools=(gh lsd bat starship fd ripgrep fzf neofetch pyenv nvm pnpm btop lazygit yazi)
+  local dev_tools=(gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi)
 
   info "Updating Homebrew..."
   brew update
@@ -60,7 +60,7 @@ install_brew_tools_for_mac() {
 
 # ── Install Brew Tools (dev tools only) ──
 install_brew_tools() {
-  local tools=(pyenv nvm pnpm gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi)
+  local tools=(gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi)
   info "Updating Homebrew..."
   brew update
 

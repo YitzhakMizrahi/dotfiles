@@ -13,55 +13,68 @@ success() { echo -e "\033[1;32m✅ $1\033[0m"; }
 warn()    { echo -e "\033[1;33m⚠️  $1\033[0m"; }
 fail()    { echo -e "\033[1;31m❌ $1\033[0m"; exit 1; }
 
+# ── Install pyenv ──
+if ! command -v pyenv &>/dev/null; then
+  info "Installing pyenv..."
+  curl https://pyenv.run | bash
+
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+  success "pyenv installed and configured."
+else
+  success "pyenv already installed."
+fi
+
 # ── Python via pyenv ──
 PYTHON_VERSION="3.13.3"
-if command -v pyenv &>/dev/null; then
-  if pyenv versions | grep -q "$PYTHON_VERSION"; then
-    info "Python $PYTHON_VERSION already installed."
-  else
-    info "Installing Python $PYTHON_VERSION via pyenv..."
-    pyenv install "$PYTHON_VERSION"
-  fi
-  pyenv global "$PYTHON_VERSION"
-  success "Python $PYTHON_VERSION set as global default."
+if pyenv versions | grep -q "$PYTHON_VERSION"; then
+  info "Python $PYTHON_VERSION already installed."
 else
-  warn "pyenv not found. Skipping Python setup."
+  info "Installing Python $PYTHON_VERSION via pyenv..."
+  pyenv install "$PYTHON_VERSION"
+fi
+
+pyenv global "$PYTHON_VERSION"
+success "Python $PYTHON_VERSION set as global default."
+
+# ── Install nvm ──
+if ! command -v nvm &>/dev/null; then
+  info "Installing nvm..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+  export NVM_DIR="$HOME/.nvm"
+  source "$NVM_DIR/nvm.sh"
+  success "nvm installed."
+else
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+  success "nvm already installed."
 fi
 
 # ── Node.js via nvm ──
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \
-  source "$NVM_DIR/nvm.sh"
+info "Installing latest LTS Node via nvm..."
+nvm install --lts
+nvm use --lts
+nvm alias default 'lts/*'
+success "Node.js LTS installed and set as default."
 
-if command -v nvm &>/dev/null; then
-  info "Installing latest LTS Node via nvm..."
-  nvm install --lts
-  nvm use --lts
-  nvm alias default 'lts/*'
-  success "Node.js LTS installed and set as default."
+# ── pnpm via corepack ──
+if ! command -v pnpm &>/dev/null; then
+  info "Installing pnpm via corepack..."
+  corepack enable
+  corepack prepare pnpm@latest --activate
+  success "pnpm installed."
 else
-  warn "nvm not found. Skipping Node.js setup."
-fi
-
-# ── pnpm ──
-if command -v pnpm &>/dev/null; then
   success "pnpm already installed."
-else
-  if command -v npm &>/dev/null; then
-    info "Installing pnpm via npm..."
-    npm install -g pnpm
-    success "pnpm installed."
-  else
-    warn "npm not found. Skipping pnpm installation."
-  fi
 fi
 
 # ── Final summary ──
 echo ""
 echo "🔍 Installed Versions:"
-echo "  🐍 Python:  $(command -v python >/dev/null && python --version 2>&1 || echo 'Not available')"
-echo "  🟢 Node.js: $(command -v node >/dev/null && node --version 2>&1 || echo 'Not available')"
-echo "  📦 pnpm:    $(command -v pnpm >/dev/null && pnpm --version 2>&1 || echo 'Not available')"
+echo "  🐍 Python:  $(python --version 2>&1)"
+echo "  🟢 Node.js: $(node --version 2>&1)"
+echo "  📦 pnpm:    $(pnpm --version 2>&1)"
 echo ""
 success "🚀 Language environments ready to use."
 warn "Note: Restart your shell to activate pyenv/nvm globally if needed."
