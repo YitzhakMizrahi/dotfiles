@@ -3,7 +3,8 @@
 # ╭────────────────────────────────────────────────────────────╮
 # │                🐍 Language Environment Setup                │
 # ╰────────────────────────────────────────────────────────────╯
-# Installs and configures Python via pyenv and Node via nvm
+# Ensures Python, Node, and pnpm are configured and usable.
+# Assumes tools are already installed via install-tools.sh
 
 set -e
 
@@ -13,69 +14,58 @@ success() { echo -e "\033[1;32m✅ $1\033[0m"; }
 warn()    { echo -e "\033[1;33m⚠️  $1\033[0m"; }
 fail()    { echo -e "\033[1;31m❌ $1\033[0m"; exit 1; }
 
-# ── Install pyenv ──
-if ! command -v pyenv &>/dev/null; then
-  info "Installing pyenv..."
-  curl https://pyenv.run | bash
-
+# ── pyenv setup ──
+if [[ -d "$HOME/.pyenv" ]]; then
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
-  success "pyenv installed and configured."
+
+  info "🔎 Detecting latest stable Python version..."
+  latest_stable=$(pyenv install --list | grep -E "^\s*3\.[0-9]+\.[0-9]+$" | grep -v - | tail -1 | tr -d '[:space:]')
+
+  if [[ -z "$latest_stable" ]]; then
+    warn "Could not detect latest Python version. Skipping Python setup."
+  elif pyenv versions | grep -q "$latest_stable"; then
+    info "Python $latest_stable already installed."
+  else
+    info "Installing Python $latest_stable via pyenv..."
+    pyenv install "$latest_stable"
+  fi
+
+  pyenv global "$latest_stable"
+  success "Python $latest_stable set as global default."
 else
-  success "pyenv already installed."
+  warn "pyenv not found. Skipping Python setup."
 fi
 
-# ── Python via pyenv ──
-PYTHON_VERSION="3.13.3"
-if pyenv versions | grep -q "$PYTHON_VERSION"; then
-  info "Python $PYTHON_VERSION already installed."
-else
-  info "Installing Python $PYTHON_VERSION via pyenv..."
-  pyenv install "$PYTHON_VERSION"
-fi
-
-pyenv global "$PYTHON_VERSION"
-success "Python $PYTHON_VERSION set as global default."
-
-# ── Install nvm ──
-if ! command -v nvm &>/dev/null; then
-  info "Installing nvm..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-  export NVM_DIR="$HOME/.nvm"
+# ── nvm setup ──
+export NVM_DIR="$HOME/.nvm"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
   source "$NVM_DIR/nvm.sh"
-  success "nvm installed."
+
+  info "Ensuring latest LTS Node.js is installed via nvm..."
+  nvm install --lts
+  nvm use --lts
+  nvm alias default 'lts/*'
+  success "Node.js LTS installed and set as default."
 else
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-  success "nvm already installed."
+  warn "nvm not found. Skipping Node.js setup."
 fi
 
-# ── Node.js via nvm ──
-info "Installing latest LTS Node via nvm..."
-nvm install --lts
-nvm use --lts
-nvm alias default 'lts/*'
-success "Node.js LTS installed and set as default."
-
-# ── pnpm via corepack ──
-if ! command -v pnpm &>/dev/null; then
-  info "Installing pnpm via corepack..."
-  corepack enable
-  corepack prepare pnpm@latest --activate
-  success "pnpm installed."
+# ── pnpm check ──
+if command -v pnpm &>/dev/null; then
+  success "pnpm is available."
 else
-  success "pnpm already installed."
+  warn "pnpm not found in PATH. Skipping pnpm setup."
 fi
 
 # ── Final summary ──
 echo ""
 echo "🔍 Installed Versions:"
-echo "  🐍 Python:  $(python --version 2>&1)"
-echo "  🟢 Node.js: $(node --version 2>&1)"
-echo "  📦 pnpm:    $(pnpm --version 2>&1)"
+echo "  🐍 Python:  $(command -v python >/dev/null && python --version 2>&1 || echo 'Not found')"
+echo "  🟢 Node.js: $(command -v node >/dev/null && node --version 2>&1 || echo 'Not found')"
+echo "  📦 pnpm:    $(command -v pnpm >/dev/null && pnpm --version 2>&1 || echo 'Not found')"
 echo ""
-success "🚀 Language environments ready to use."
+success "🚀 Language environments verified and ready to use."
 warn "Note: Restart your shell to activate pyenv/nvm globally if needed."
-
