@@ -38,9 +38,18 @@ if [[ -s "$NVM_DIR/nvm.sh" ]]; then
 fi
 
 # Python (pyenv)
-if command -v pyenv >/dev/null 2>&1; then
-  python_ver=$(pyenv version-name)
-  printf "  🐍  %-10s  %s\n" "Python" "$python_ver"
+if [ -d "$HOME/.pyenv" ]; then
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init --path 2>/dev/null)"
+  eval "$(pyenv init - 2>/dev/null)"
+
+  if command -v pyenv >/dev/null 2>&1; then
+    python_ver=$(pyenv version-name)
+    printf "  🐍  %-10s  %s\n" "Python" "$python_ver"
+  else
+    printf "  ⚠️   %-10s  pyenv not initialized\n" "Python"
+  fi
 else
   printf "  ⚠️   %-10s  Not found\n" "Python"
 fi

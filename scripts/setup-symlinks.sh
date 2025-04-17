@@ -66,8 +66,9 @@ declare -A SYMLINKS=(
   ["~/.zshrc"]="~/.dotfiles/.zshrc"
   ["~/.tmux.conf"]="~/.dotfiles/.tmux.conf"
   ["~/.gitconfig"]="~/.dotfiles/.gitconfig"
-  ["~/.config/lsd/config.yaml"]="~/.dotfiles/.config/lsd/config.yaml"
+  ["~/.config/starship.toml"]="~/.dotfiles/.config/starship.toml"
   ["~/.config/yazi"]="~/.dotfiles/.config/yazi"
+  ["~/.config/lsd/config.yaml"]="~/.dotfiles/.config/lsd/config.yaml"
   ["~/.config/gh/config.yml"]="~/.dotfiles/.config/gh/config.yml"
   ["~/.config/lazygit/config.yml"]="~/.dotfiles/.config/lazygit/config.yml"
 )
