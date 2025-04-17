@@ -16,21 +16,17 @@ fail()    { echo -e "\033[1;31m❌ $1\033[0m"; exit 1; }
 # ── Python via pyenv ──
 PYTHON_VERSION="3.13.3"
 if command -v pyenv &>/dev/null; then
-  success "pyenv already installed."
+  if pyenv versions | grep -q "$PYTHON_VERSION"; then
+    info "Python $PYTHON_VERSION already installed."
+  else
+    info "Installing Python $PYTHON_VERSION via pyenv..."
+    pyenv install "$PYTHON_VERSION"
+  fi
+  pyenv global "$PYTHON_VERSION"
+  success "Python $PYTHON_VERSION set as global default."
 else
-  warn "pyenv not found. Please ensure pyenv is installed first."
-  exit 1
+  warn "pyenv not found. Skipping Python setup."
 fi
-
-if pyenv versions | grep -q "$PYTHON_VERSION"; then
-  info "Python $PYTHON_VERSION already installed."
-else
-  info "Installing Python $PYTHON_VERSION via pyenv..."
-  pyenv install "$PYTHON_VERSION"
-fi
-
-pyenv global "$PYTHON_VERSION"
-success "Python $PYTHON_VERSION set as global default."
 
 # ── Node.js via nvm ──
 export NVM_DIR="$HOME/.nvm"
@@ -44,25 +40,29 @@ if command -v nvm &>/dev/null; then
   nvm alias default 'lts/*'
   success "Node.js LTS installed and set as default."
 else
-  warn "nvm not found. Please ensure nvm is installed first."
-  exit 1
+  warn "nvm not found. Skipping Node.js setup."
 fi
 
 # ── pnpm ──
 if command -v pnpm &>/dev/null; then
   success "pnpm already installed."
 else
-  info "Installing pnpm via npm..."
-  npm install -g pnpm
-  success "pnpm installed."
+  if command -v npm &>/dev/null; then
+    info "Installing pnpm via npm..."
+    npm install -g pnpm
+    success "pnpm installed."
+  else
+    warn "npm not found. Skipping pnpm installation."
+  fi
 fi
 
 # ── Final summary ──
 echo ""
 echo "🔍 Installed Versions:"
-echo "  🐍 Python:  $(python --version 2>&1)"
-echo "  🟢 Node.js: $(node --version 2>&1)"
-echo "  📦 pnpm:    $(pnpm --version 2>&1)"
+echo "  🐍 Python:  $(command -v python >/dev/null && python --version 2>&1 || echo 'Not available')"
+echo "  🟢 Node.js: $(command -v node >/dev/null && node --version 2>&1 || echo 'Not available')"
+echo "  📦 pnpm:    $(command -v pnpm >/dev/null && pnpm --version 2>&1 || echo 'Not available')"
 echo ""
 success "🚀 Language environments ready to use."
 warn "Note: Restart your shell to activate pyenv/nvm globally if needed."
+

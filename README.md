@@ -21,7 +21,7 @@ Welcome to my personal modular and polished **dotfiles setup** — designed for 
 
 ```bash
 # Clone your dotfiles
-git clone git@github.com:YitzhakMizrahi/dotfiles.git ~/.dotfiles
+git clone https://github.com/YitzhakMizrahi/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 
 # Run the bootstrap

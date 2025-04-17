@@ -27,7 +27,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   fi
 fi
 
-
 info "Detected platform: $PLATFORM"
 
 # ── Install Homebrew ──
@@ -44,21 +43,24 @@ install_homebrew() {
 
 # ── Install Brew Tools for macOS (includes system-level) ──
 install_brew_tools_for_mac() {
-  local tools=(
-    git zsh tmux curl wget  # base tools
-    gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi  # dev tools
-  )
+  local base_tools=(git zsh tmux curl wget)  # Often preinstalled, but safe to re-check
+  local dev_tools=(gh lsd bat starship fd ripgrep fzf neofetch pyenv nvm pnpm btop lazygit yazi)
+
   info "Updating Homebrew..."
   brew update
 
-  info "Installing tools via Homebrew (macOS)..."
-  brew install "${tools[@]}"
-  success "Brew tools for macOS installed."
+  info "Installing base tools via Homebrew (macOS)..."
+  brew install "${base_tools[@]}"
+
+  info "Installing dev tools via Homebrew (macOS)..."
+  brew install "${dev_tools[@]}"
+
+  success "All Homebrew tools for macOS installed."
 }
 
 # ── Install Brew Tools (dev tools only) ──
 install_brew_tools() {
-  local tools=(gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi)
+  local tools=(pyenv nvm pnpm gh lsd bat starship fd ripgrep fzf neofetch btop lazygit yazi)
   info "Updating Homebrew..."
   brew update
 
@@ -86,6 +88,7 @@ case "$PLATFORM" in
   wsl|linux)
     install_apt_tools
     install_homebrew
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null || true)"
     install_brew_tools
     ;;
   *)
@@ -94,3 +97,4 @@ case "$PLATFORM" in
 esac
 
 success "All essential tools installed. You’re good to go!"
+
