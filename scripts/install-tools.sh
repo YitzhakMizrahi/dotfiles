@@ -65,7 +65,10 @@ install_brew_tools() {
   brew update
 
   info "Installing tools via Homebrew..."
-  brew install "${tools[@]}"
+  if ! brew install "${tools[@]}"; then
+    warn "Some tools may have failed to install — check logs."
+  fi
+
   success "Brew tools installed."
 }
 
