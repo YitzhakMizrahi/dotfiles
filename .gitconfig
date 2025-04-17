@@ -1,6 +1,5 @@
-[user]
-  name = ymizrahi
-  email = mizrahi.yitzchak@gmail.com
+[include]
+  path = ~/.gitconfig.local
 
 [pull]
   rebase = true

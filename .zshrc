@@ -23,7 +23,7 @@ fi
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light Aloxaf/fzf-tab
-zinit ice wait"0" atinit"echo ⚡ starship loading..."
+# zinit ice wait"0" atinit"echo ⚡ starship loading..."
 zinit light starship/starship
 _zshrc_timing_log "zinit"
 
@@ -115,10 +115,10 @@ alias rm='rm -i'
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ─────────────────────────────────────────
-alias sl='bash ~/scripts/scripts_list.sh'
-alias us='bash ~/scripts/update_system.sh'
-alias clup='bash ~/scripts/cleanup.sh'
-alias diu='bash ~/scripts/disk_usage.sh'
+alias sl='bash ~/.dotfiles/scripts/scripts_list.sh'
+alias us='bash ~/.dotfiles/scripts/update_system.sh'
+alias clup='bash ~/.dotfiles/scripts/cleanup.sh'
+alias diu='bash ~/.dotfiles/scripts/disk_usage.sh'
 _zshrc_timing_log "script aliases"
 
 # 🧪 ── Debugging / Reloading ──────────────────────────────────────────────

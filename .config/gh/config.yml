@@ -1,8 +1,7 @@
-# ~/.dotfiles/.config/gh/config.yml
-
-git_protocol: ssh  # Or 'https' if you prefer https cloning
-editor: code         # Change to 'vim', 'nano', 'nvim', etc. if you prefer
+git_protocol: ssh # Or 'https' if you prefer https cloning
+editor: code # Change to 'vim', 'nano', 'nvim', etc. if you prefer
 prompt: enabled
 aliases:
-  co: pr checkout
-  pv: pr view --web
+    co: pr checkout
+    pv: pr view --web
+version: "1"
