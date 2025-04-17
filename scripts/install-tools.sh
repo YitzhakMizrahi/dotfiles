@@ -99,11 +99,15 @@ install_python_node_envs() {
 
 install_pyenv() {
   info "📘 Installing pyenv..."
-  if [[ -d "$HOME/.pyenv" ]]; then
-    warn "pyenv already installed. Skipping."
-    return
-  fi
 
+  # Install required build packages
+  info "📦 Installing build packages for Python..."
+  sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
+    libffi-dev liblzma-dev
+
+  # Clone pyenv and plugins
   git clone https://github.com/pyenv/pyenv.git ~/.pyenv
   git clone https://github.com/pyenv/pyenv-doctor.git ~/.pyenv/plugins/pyenv-doctor
   git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-update
@@ -111,15 +115,29 @@ install_pyenv() {
 
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init - bash)"
+  eval "$(pyenv init --path)"
+  eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
 
   success "pyenv installed and configured."
 
-  info "📘 Installing Python 3.13.3 via pyenv..."
-  pyenv install 3.13.3
-  pyenv global 3.13.3
+  # Find latest stable version
+  info "🔎 Detecting latest stable Python version..."
+  local latest_stable
+  latest_stable=$(pyenv install --list | grep -E "^\s*3\.[0-9]+\.[0-9]+$" | grep -v - | tail -1 | tr -d '[:space:]')
+
+  if [[ -z "$latest_stable" ]]; then
+    fail "Unable to detect latest stable Python version"
+    return 1
+  fi
+
+  info "📘 Installing Python $latest_stable via pyenv..."
+  pyenv install "$latest_stable"
+  pyenv global "$latest_stable"
+  success "Python $latest_stable installed and set as global version."
 }
+
+
 
 install_nvm() {
   info "📘 Installing nvm..."
