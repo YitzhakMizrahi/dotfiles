@@ -31,6 +31,10 @@ _zshrc_timing_log "zinit"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.dotfiles/scripts:$PATH"
 export TERM="xterm-256color"
+
+# 🐧 Add Snap support for tools like lxc
+export PATH="$PATH:/snap/bin"
+
 _zshrc_timing_log "env setup"
 
 # 📝 ── History Settings ───────────────────────────────────────────────────
@@ -54,6 +58,12 @@ elif [[ -x "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 _zshrc_timing_log "homebrew"
+
+# 🟨 ── Go (goenv) ──────────────────────────────────────────────────────────
+export GOENV_ROOT="$HOME/.goenv"
+export PATH="$GOENV_ROOT/bin:$PATH"
+eval "$(goenv init -)"
+_zshrc_timing_log "goenv"
 
 # 🐍 ── pyenv ──────────────────────────────────────────────────────────────
 export PYENV_ROOT="$HOME/.pyenv"
