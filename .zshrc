@@ -151,6 +151,8 @@ _zshrc_timing_log "prompt"
 # ⌨️ ── Keybindings ────────────────────────────────────────────────────────
 bindkey '^H' backward-kill-word          # Ctrl+Backspace
 bindkey '^[[3;5~' kill-word              # Ctrl+Delete
+bindkey '^[[1;5A' history-search-backward
+bindkey '^[[1;5B' history-search-forward
 _zshrc_timing_log "keybindings"
 
 # 🔄 ── Completion ─────────────────────────────────────────────────────────
@@ -163,6 +165,11 @@ if command -v zoxide >/dev/null 2>&1; then
 fi
 alias zi='__zoxide_zi'
 _zshrc_timing_log "zoxide"
+
+# Auto attach to tmux session if not already inside one
+# if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+#   tmux attach -t default || tmux new -s default
+# fi
 
 # 🕒 ── Final Timing Output ────────────────────────────────────────────────
 if [[ $SOURCE_TIMING == "true" ]]; then
