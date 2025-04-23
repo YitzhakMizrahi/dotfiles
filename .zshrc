@@ -138,6 +138,34 @@ alias zshrc='SOURCE_TIMING=true source ~/.zshrc'
 mkcd() { mkdir -p "$1" && cd "$1"; }
 _zshrc_timing_log "functions"
 
+# 🧪 ── pkgx Dev Helper Function ───────────────────────────────────────────
+pkgx() {
+  case "$1" in
+    build)
+      go build -o build/bin/bootstrap-cli main.go
+      ;;
+    exec)
+      lxc exec bootstrap-test -- su - devuser
+      ;;
+    push)
+      lxc file push build/bin/bootstrap-cli bootstrap-test/home/devuser/bootstrap-cli --mode=755
+      ;;
+    run)
+      shift
+      lxc exec bootstrap-test -- su - devuser -c "cd /home/devuser && ./bootstrap-cli $*"
+      ;;
+    restore)
+    lxc restore bootstrap-test clean-setup
+    ;;
+    *)
+      echo "Usage: pkgx {build|push|run [args...]}"
+      return 1
+      ;;
+  esac
+}
+_zshrc_timing_log "pkgx"
+
+
 # 💬 ── Prompt (starship) ─────────────────────────────────────────────────
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
