@@ -1,9 +1,11 @@
-# ~/.dotfiles/.config/starship.toml
+# 🎨 Perfect Gruvbox Starship Configuration
+# Clean, functional, and beautiful - combining the best of all approaches
 
 format = """
 $directory\
 $git_branch\
 $git_status\
+$git_metrics\
 $fill\
 $python\
 $lua\
@@ -12,6 +14,8 @@ $golang\
 $haskell\
 $rust\
 $ruby\
+$java\
+$php\
 $package\
 $aws\
 $docker_context\
@@ -21,111 +25,242 @@ $line_break\
 $character"""
 
 add_newline = true
-palette = 'nord'
+palette = 'gruvbox_dark'
 
+# Gruvbox Dark Palette (authentic colors)
+[palettes.gruvbox_dark]
+# Background colors
+bg0 = '#282828'      # Main background
+bg1 = '#3c3836'      # Slightly lighter
+bg2 = '#504945'      # Even lighter
+bg3 = '#665c54'      # Light background
+bg4 = '#7c6f64'      # Lighter still
+
+# Foreground colors  
+fg0 = '#fbf1c7'      # Light cream
+fg1 = '#ebdbb2'      # Main text
+fg2 = '#d5c4a1'      # Slightly darker
+fg3 = '#bdae93'      # Even darker
+fg4 = '#a89984'      # Dark text
+
+# Accent colors
+red = '#fb4934'      # Bright red
+green = '#b8bb26'    # Bright green  
+yellow = '#fabd2f'   # Bright yellow
+blue = '#83a598'     # Bright blue
+purple = '#d3869b'   # Bright purple
+aqua = '#8ec07c'     # Bright aqua/cyan
+orange = '#fe8019'   # Bright orange
+
+# Muted variants
+red_dim = '#cc241d'
+green_dim = '#98971a'
+yellow_dim = '#d79921'
+blue_dim = '#458588'
+purple_dim = '#b16286'
+aqua_dim = '#689d6a'
+orange_dim = '#d65d0e'
+
+# Grays
+gray = '#928374'
+gray_dim = '#7c6f64'
+
+# Directory styling - clean and prominent
 [directory]
-style = 'bold fg:dark_blue'
+style = 'bold fg:yellow'
 format = '[$path ]($style)'
 truncation_length = 3
 truncation_symbol = '…/'
 truncate_to_repo = false
 
+# Clean directory substitutions (your style)
 [directory.substitutions]
+"Developer" = "󰲋 "
 'Documents' = '󰈙'
 'Downloads' = ' '
 'Music' = ' '
 'Pictures' = ' '
 
+# Git branch - clean and readable
 [git_branch]
-style = 'fg:green'
 symbol = ' '
-format = '[on](white) [$symbol$branch ]($style)'
+style = 'fg:aqua'
+format = '[on](fg:fg4) [$symbol$branch ]($style)'
 
+# Git status - informative but not overwhelming
 [git_status]
-style = 'fg:green'
-format = '([$all_status$ahead_behind]($style) )'
+style = "fg:red"
+format = "([$all_status$ahead_behind]($style) )"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+deleted = "✘"
+modified = "!"
+staged = "+"
+untracked = "?"
+renamed = "»"
+conflicted = "="
 
+
+# Git metrics - shows actual line changes (this is gold!)
+[git_metrics]
+added_style = 'fg:green'
+deleted_style = 'fg:red'
+format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
+disabled = false
+
+# Fill - pushes right side content to the right
 [fill]
 symbol = ' '
 
+# Python - clean and informative
 [python]
-style = 'teal'
 symbol = ' '
-format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+style = 'blue'
+format = '[${symbol}${pyenv_prefix}(${version} )]($style)'
 pyenv_version_name = true
 pyenv_prefix = ''
 
+# Node.js
+[nodejs]
+symbol = ' '
+style = 'green'
+format = '[$symbol($version) ]($style)'
+
+# Lua
 [lua]
 symbol = ' '
-
-[nodejs]
 style = 'blue'
-symbol = ' '
+format = '[$symbol($version) ]($style)'
 
+# Go
 [golang]
-style = 'blue'
 symbol = ' '
+style = 'aqua'
+format = '[$symbol($version) ]($style)'
 
+# Haskell
 [haskell]
-style = 'blue'
 symbol = ' '
+style = 'purple'
+format = '[$symbol($version) ]($style)'
 
+# Rust
 [rust]
-style = 'orange'
 symbol = ' '
+style = 'orange'
+format = '[$symbol($version) ]($style)'
 
+# Ruby
 [ruby]
-style = 'blue'
 symbol = ' '
+style = 'red'
+format = '[$symbol($version) ]($style)'
 
+# Java
+[java]
+symbol = " "
+style = 'orange'
+format = '[$symbol($version) ]($style)'
+
+# PHP
+[php]
+symbol = " "
+style = 'purple'
+format = '[$symbol($version) ]($style)'
+
+# Package version
 [package]
 symbol = '󰏗 '
+style = 'purple'
+format = '[$symbol($version) ]($style)'
 
+# AWS
 [aws]
 symbol = ' '
 style = 'yellow'
 format = '[$symbol($profile )(\[$duration\] )]($style)'
 
+# Docker - smart detection
 [docker_context]
-symbol = ' '
-style = 'fg:#06969A'
-format = '[$symbol]($style) $path'
+symbol = " "
+style = 'blue'
+format = '[$symbol$context ]($style)'
 detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
 detect_extensions = ['Dockerfile']
+only_with_files = true
 
+# Jobs - background processes
 [jobs]
 symbol = ' '
 style = 'red'
 number_threshold = 1
-format = '[$symbol]($style)'
+format = '[$symbol$number ]($style)'
 
+# Command duration - performance feedback
 [cmd_duration]
 min_time = 500
 style = 'fg:gray'
-format = '[$duration]($style)'
+format = '[$duration ]($style)'
 
-[palettes.nord]
-dark_blue = '#5E81AC'
-blue = '#81A1C1'
-teal = '#88C0D0'
-red = '#BF616A'
-orange = '#D08770'
-green = '#A3BE8C'
-yellow = '#EBCB8B'
-purple = '#B48EAD'
-gray = '#434C5E'
-black = '#2E3440'
-white='#D8DEE9'
+# Character - the prompt symbol
+[character]
+success_symbol = '[❯](bold fg:green)'
+error_symbol = '[❯](bold fg:red)'
+vicmd_symbol = '[❮](bold fg:yellow)'
 
-[palettes.onedark]
-dark_blue='#61afef'
-blue='#56b6c2'
-red='#e06c75'
-green='#98c379'
-purple='#c678dd'
-cyan='#56b6c2'
-orange='#be5046'
-yellow='#e5c07b'
-gray='#828997'
-white ='#abb2bf'
-black='#2c323c'
+# Line break
+[line_break]
+disabled = false
+
+# Additional useful modules (disabled by default)
+
+# Time display
+[time]
+disabled = true
+time_format = "%R"
+style = 'fg:gray'
+format = '[$time ]($style)'
+
+# Memory usage
+[memory_usage]
+disabled = true
+threshold = 70
+symbol = '󰍛 '
+style = 'fg:red'
+format = '[$symbol$ram ]($style)'
+
+# Battery (for laptops)
+[battery]
+full_symbol = '🔋'
+charging_symbol = '⚡ '
+discharging_symbol = '💀 '
+disabled = true
+
+[[battery.display]]
+threshold = 15
+style = 'bold fg:red'
+
+[[battery.display]]
+threshold = 50
+style = 'bold fg:yellow'
+
+# Status codes
+[status]
+style = 'fg:red'
+symbol = '✖ '
+format = '[\[$symbol $common_meaning$signal_name$maybe_int\] ]($style)'
+map_symbol = true
+disabled = false
+
+# Kubernetes (if you use it)
+[kubernetes]
+format = '[⛵ $context \($namespace\) ]($style)'
+style = 'fg:blue'
+disabled = true
+
+# Conda environments
+[conda]
+style = 'fg:green'
+format = '[$symbol$environment ]($style)'
+disabled = false
