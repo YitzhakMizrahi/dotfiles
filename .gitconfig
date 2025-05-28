@@ -22,3 +22,19 @@
 
 [safe]
   directory = *
+
+[coulumn]
+  ui = auto
+
+[branch]
+  sort = committerdate
+
+[tag]
+  sort = version:refname
+
+[init]
+  defaultBranch = main
+
+[diff]
+  algorithm = histogram
+
