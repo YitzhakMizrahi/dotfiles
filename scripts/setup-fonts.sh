@@ -1,67 +1,71 @@
 #!/usr/bin/env bash
 
 # ╭────────────────────────────────────────────────────────────╮
-# │                 🔤 Nerd Font Setup Script                  │
+# │                  Nerd Font Setup                           │
 # ╰────────────────────────────────────────────────────────────╯
 # Detects Nerd Font presence and offers optional install
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
-# ── OS & WSL Detection ────────────────────────────────────────
-is_wsl=false
+# ── WSL Detection ────────────────────────────────────────────
 if grep -qiE "(microsoft|wsl)" /proc/version 2>/dev/null; then
-  is_wsl=true
-fi
-
-# ── Nerd Font Check ───────────────────────────────────────────
-if $is_wsl; then
-  info "Detected WSL — Nerd Fonts should be managed via your Windows Terminal profile."
+  ui_info "WSL detected — Nerd Fonts should be managed via your Windows terminal."
   exit 0
 fi
 
-if fc-list | grep -iE 'Nerd Font|NF' &>/dev/null; then
-  success "Nerd Font already installed."
+# ── Nerd Font Check ──────────────────────────────────────────
+if fc-list 2>/dev/null | grep -iE 'Nerd Font|NF' &>/dev/null; then
+  ui_success "Nerd Font already installed"
   exit 0
 else
-  warn "No Nerd Font detected."
+  ui_warn "No Nerd Font detected"
 fi
 
-# ── Prompt for Installation ───────────────────────────────────
-echo -e "\nChoose a Nerd Font to install:"
-echo "  1) FiraCode NF"
-echo "  2) CaskaydiaCove NF"
-echo "  3) JetBrainsMono NF"
-echo "  4) Skip installation"
-echo -n "Enter your choice [1-4]: "
-read -r font_choice
+# ── Font Selection ───────────────────────────────────────────
+FONTS=("FiraCode" "CaskaydiaCove" "JetBrainsMono" "Skip")
 
-# ── Font Installer ────────────────────────────────────────────
+if [[ "$HAS_GUM" -eq 1 ]]; then
+  font_choice=$(gum choose --header "Choose a Nerd Font to install:" "${FONTS[@]}")
+else
+  echo
+  echo "Choose a Nerd Font to install:"
+  echo "  1) FiraCode"
+  echo "  2) CaskaydiaCove"
+  echo "  3) JetBrainsMono"
+  echo "  4) Skip"
+  read -p "Enter choice [1-4]: " -r choice
+  case $choice in
+    1) font_choice="FiraCode" ;;
+    2) font_choice="CaskaydiaCove" ;;
+    3) font_choice="JetBrainsMono" ;;
+    *) font_choice="Skip" ;;
+  esac
+fi
+
+if [[ "$font_choice" == "Skip" ]]; then
+  ui_info "Skipped font installation"
+  exit 0
+fi
+
+# ── Font Installer ───────────────────────────────────────────
 install_font() {
-  local font_name="$1"
-  local zip_url="$2"
+  local name="$1"
+  local url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${name}.zip"
   local tmp_dir="/tmp/nerdfont-install"
+
   mkdir -p "$tmp_dir"
-  curl -Ls -o "$tmp_dir/$font_name.zip" "$zip_url"
-  unzip -o "$tmp_dir/$font_name.zip" -d "$tmp_dir"
+  curl -Ls -o "$tmp_dir/$name.zip" "$url"
+  unzip -o "$tmp_dir/$name.zip" -d "$tmp_dir" >/dev/null
   mkdir -p "$HOME/.local/share/fonts"
-  cp "$tmp_dir"/*.ttf "$HOME/.local/share/fonts/" || true
+  cp "$tmp_dir"/*.ttf "$HOME/.local/share/fonts/" 2>/dev/null || true
   fc-cache -fv &>/dev/null
-  success "$font_name NF installed."
+  ui_success "$name Nerd Font installed"
 }
 
-case $font_choice in
-  1)
-    install_font "FiraCode" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip"
-    ;;
-  2)
-    install_font "CaskaydiaCove" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CaskaydiaCove.zip"
-    ;;
-  3)
-    install_font "JetBrainsMono" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-    ;;
-  *)
-    info "Skipped font installation."
-    ;;
-esac
+if [[ "$HAS_GUM" -eq 1 ]]; then
+  gum spin --spinner dot --title "Installing $font_choice Nerd Font..." -- install_font "$font_choice"
+else
+  install_font "$font_choice"
+fi
