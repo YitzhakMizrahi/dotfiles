@@ -159,10 +159,8 @@ alias vc='vault-close'
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ────────────────────────────────────
-alias sl='bash ~/.dotfiles/scripts/scripts-list.sh'
 alias us='bash ~/.dotfiles/scripts/update-system.sh'
-alias clup='bash ~/.dotfiles/scripts/cleanup.sh'
-alias diu='bash ~/.dotfiles/scripts/disk-usage.sh'
+alias clup='bash ~/.dotfiles/scripts/clean-system.sh'
 alias book='firefox ~/books/book/book/index.html 2>/dev/null'
 _zshrc_timing_log "script aliases"
 
@@ -193,10 +191,12 @@ _zshrc_timing_log "keybindings"
 
 # 🔄 ── Completion ────────────────────────────────────────────────────
 autoload -Uz compinit
-if [[ ! -f ${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${ZSH_VERSION} ]]; then
-  compinit -C
+local zcd="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${ZSH_VERSION}"
+mkdir -p "${zcd:h}"
+if [[ -s "$zcd" && $(date +'%j') == $(stat -c '%j' "$zcd" 2>/dev/null || stat -f '%Sm' -t '%j' "$zcd" 2>/dev/null) ]]; then
+  compinit -C -d "$zcd"
 else
-  compinit
+  compinit -d "$zcd"
 fi
 _zshrc_timing_log "compinit"
 
