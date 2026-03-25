@@ -25,10 +25,15 @@ jobs:
         with:
           path: .dotfiles
 
-      - name: Move to home directory
-        run: mv "$GITHUB_WORKSPACE/.dotfiles" "$HOME/.dotfiles"
+      - name: Prepare environment
+        run: |
+          mv "$GITHUB_WORKSPACE/.dotfiles" "$HOME/.dotfiles"
+          rm -f "$HOME/.gitconfig"
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
 
       - name: Install
+        env:
+          MISE_VERBOSE: "1"
         run: bash ~/.dotfiles/scripts/install.sh
 
       - name: Validate
