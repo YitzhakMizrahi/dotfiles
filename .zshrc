@@ -134,7 +134,7 @@ _zshrc_timing_log "utility aliases"
 # 🛠️ ── Aliases: Personal Scripts ────────────────────────────────────
 alias us='bash ~/.dotfiles/scripts/maintenance/update.sh'
 alias clup='bash ~/.dotfiles/scripts/maintenance/clean.sh'
-alias book='firefox ~/books/book/book/index.html 2>/dev/null'
+alias book='rustup doc --book 2>/dev/null'
 _zshrc_timing_log "script aliases"
 
 # ⚙️ ── Functions ─────────────────────────────────────────────────────

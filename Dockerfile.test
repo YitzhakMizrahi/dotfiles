@@ -29,7 +29,8 @@ ENV LANG=en_US.UTF-8
 # Create non-root user with password (mirrors a real machine)
 RUN useradd -m -s /bin/bash devuser \
     && echo "devuser:devuser" | chpasswd \
-    && usermod -aG sudo devuser
+    && usermod -aG sudo devuser \
+    && echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser
 
 USER devuser
 WORKDIR /home/devuser

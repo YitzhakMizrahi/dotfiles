@@ -46,7 +46,7 @@ echo "    • Shell config (Zsh + Zinit + Starship)"
 echo "    • Git identity & SSH keys"
 echo
 
-if ! ui_confirm "Proceed with installation?"; then
+if ! ui_confirm "Proceed with installation?" "yes"; then
   ui_info "Installation cancelled."
   exit 0
 fi
