@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 
 # ╭────────────────────────────────────────────────────────────╮
-# │                🧠 Dotfiles Bootstrap Launcher                │
+# │                🧠 Dotfiles Installer                           │
 # ╰────────────────────────────────────────────────────────────╯
 # Delegates setup to modular scripts for better structure 🛠️
 
 set -e
 
-# ── Logging ───────────────────────────────────────────────────
-info()    { echo -e "\033[1;34mℹ️  $1\033[0m"; }
-success() { echo -e "\033[1;32m✅ $1\033[0m"; }
-warn()    { echo -e "\033[1;33m⚠️  $1\033[0m"; }
-fail()    { echo -e "\033[1;31m❌ $1\033[0m"; exit 1; }
+source "$(dirname "$0")/lib/logging.sh"
 
 # ── Root Check ────────────────────────────────────────────────
 if [[ "$EUID" -eq 0 ]]; then
@@ -37,7 +33,7 @@ run_step() {
   echo
 }
 
-# ── Bootstrap Flow ────────────────────────────────────────────
+# ── Install Flow ─────────────────────────────────────────────
 run_step "setup-symlinks.sh"   "🔗 Setting up dotfile symlinks"
 run_step "install-tools.sh"    "📦 Installing dev tools"
 run_step "setup-fonts.sh"      "🔤 Checking/installing fonts"
@@ -45,11 +41,11 @@ run_step "setup-shell.sh"      "💻 Configuring shell (Zsh, Starship, etc)"
 run_step "setup-languages.sh"  "🐍 Installing Python/Node environments"
 run_step "setup-git-ssh.sh"    "🔐 Git identity and SSH setup"
 run_step "post-cleanup.sh"     "🧹 Optional cleanup"
-run_step "post-checks.sh"      "✅ Running post-install validation"
+run_step "post-validate.sh"    "✅ Running post-install validation"
 
 # ── Offer Shell Restart ───────────────────────────────────────
 echo
-read -p $'🔄 Bootstrap complete! Restart shell to apply changes? [Y/n]: ' restart
+read -p $'🔄 Install complete! Restart shell to apply changes? [Y/n]: ' restart
 restart=${restart:-Y}
 if [[ "$restart" =~ ^[Yy]$ ]]; then
   if command -v zsh >/dev/null 2>&1; then

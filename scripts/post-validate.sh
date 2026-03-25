@@ -7,11 +7,7 @@
 
 set -e
 
-# ── Logging helpers ──
-info()    { echo -e "\033[1;34mℹ️  $1\033[0m"; }
-success() { echo -e "\033[1;32m✅ $1\033[0m"; }
-warn()    { echo -e "\033[1;33m⚠️  $1\033[0m"; }
-fail()    { echo -e "\033[1;31m❌ $1\033[0m"; exit 1; }
+source "$(dirname "$0")/lib/logging.sh"
 
 # ── Tool Version Checks ──
 print_version() {

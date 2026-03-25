@@ -6,7 +6,7 @@ Welcome to my personal modular and polished **dotfiles setup** — designed for 
 
 ## 🧠 Features
 
-- 🧩 Modular `bootstrap.sh` flow — step-by-step clarity
+- 🧩 Modular `install.sh` flow — step-by-step clarity
 - 🔗 Clean symlink handling via `setup-symlinks.sh`
 - 💻 Zsh shell enhancements (Zinit, Starship, plugins)
 - 🄤 Nerd Font detection and optional installer
@@ -24,8 +24,8 @@ Welcome to my personal modular and polished **dotfiles setup** — designed for 
 git clone https://github.com/YitzhakMizrahi/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 
-# Run the bootstrap
-bash scripts/bootstrap.sh
+# Run the installer
+bash scripts/install.sh
 ```
 
 > 💡 Don’t run as root. This will guide you through safe setup and prompt you as needed.
@@ -36,14 +36,14 @@ bash scripts/bootstrap.sh
 
 | Script                  | Description                                      |
 |-------------------------|--------------------------------------------------|
-| `bootstrap.sh`          | The main launcher (calls other scripts)          |
+| `install.sh`            | The main launcher (calls other scripts)          |
 | `setup-symlinks.sh`     | Symlinks all tracked config files                |
 | `install-tools.sh`      | Installs tools (Homebrew, apt, etc)              |
 | `setup-fonts.sh`        | Detects and optionally installs Nerd Fonts       |
 | `setup-shell.sh`        | Zsh config with Zinit & Starship                 |
 | `setup-languages.sh`    | Installs Python (pyenv) and Node (nvm)           |
 | `setup-git-ssh.sh`      | Git identity, SSH key generation (no gh auth)    |
-| `post-checks.sh`        | Confirms versions & shows a final checklist      |
+| `post-validate.sh`      | Confirms versions & shows a final checklist      |
 | `post-cleanup.sh`       | Cleans temp folders and Homebrew/apt leftovers   |
 
 ---
