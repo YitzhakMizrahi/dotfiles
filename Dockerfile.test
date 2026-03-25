@@ -33,9 +33,10 @@ WORKDIR /home/devuser
 # Copy dotfiles into the container
 COPY --chown=devuser:devuser . /home/devuser/.dotfiles
 
-# Run the installer (non-interactive)
+# Run the installer in CI mode (skips interactive prompts)
+ENV DOTFILES_CI=1
 RUN cd /home/devuser/.dotfiles \
-    && bash scripts/install.sh <<< "n"
+    && bash scripts/install.sh
 
 # Run validation tests
 RUN bash /home/devuser/.dotfiles/scripts/test-validate.sh

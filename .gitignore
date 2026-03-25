@@ -34,3 +34,4 @@ venv/
 # Local overrides
 local.zsh
 *.local
+Brewfile.lock.json

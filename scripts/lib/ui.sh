@@ -27,11 +27,16 @@ readonly GB_PURPLE="#d3869b"
 readonly GB_ORANGE="#fe8019"
 readonly GB_GRAY="#928374"
 
+# ── CI Mode ────────────────────────────────────────────────
+# Set DOTFILES_CI=1 to skip interactive prompts (Docker, LXC tests)
+DOTFILES_CI="${DOTFILES_CI:-0}"
+
 # ── Gum Detection ──────────────────────────────────────────
-if command -v gum &>/dev/null; then
-  HAS_GUM=1
-else
+# Disable gum in CI (no TTY) or when not installed
+if [[ "$DOTFILES_CI" -eq 1 ]] || ! command -v gum &>/dev/null; then
   HAS_GUM=0
+else
+  HAS_GUM=1
 fi
 
 # ── Gum Theme (env vars) ───────────────────────────────────
@@ -116,8 +121,15 @@ step() {
 
 # ── Confirm ─────────────────────────────────────────────────
 # Usage: if ui_confirm "Restart shell?"; then ...
+# In CI mode, returns 1 (no) by default. Pass "yes" as $2 to default yes.
 ui_confirm() {
   local prompt="$1"
+  local default="${2:-no}"
+  if [[ "$DOTFILES_CI" -eq 1 ]]; then
+    ui_info "$prompt → $default (CI mode)"
+    [[ "$default" == "yes" ]]
+    return
+  fi
   if [[ "$HAS_GUM" -eq 1 ]]; then
     gum confirm "$prompt"
   else
@@ -129,9 +141,14 @@ ui_confirm() {
 
 # ── Input ───────────────────────────────────────────────────
 # Usage: name=$(ui_input "Name:" "John Doe")
+# In CI mode, returns the placeholder as default value.
 ui_input() {
   local prompt="$1"
   local placeholder="${2:-}"
+  if [[ "$DOTFILES_CI" -eq 1 ]]; then
+    echo "$placeholder"
+    return
+  fi
   if [[ "$HAS_GUM" -eq 1 ]]; then
     gum input --prompt "$prompt " --placeholder "$placeholder"
   else

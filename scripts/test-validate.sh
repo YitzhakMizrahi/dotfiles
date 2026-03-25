@@ -9,6 +9,15 @@
 
 set -e
 
+# Ensure Homebrew is on PATH (needed for Docker/LXC test environments)
+if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
+  eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
+elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 PASS=0
 FAIL=0
 
@@ -17,10 +26,10 @@ check() {
   shift
   if "$@" >/dev/null 2>&1; then
     printf "  PASS  %s\n" "$label"
-    ((PASS++))
+    PASS=$((PASS + 1))
   else
     printf "  FAIL  %s\n" "$label"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
   fi
 }
 
@@ -29,10 +38,10 @@ check_symlink() {
   local label="symlink: $target"
   if [[ -L "$target" ]]; then
     printf "  PASS  %s\n" "$label"
-    ((PASS++))
+    PASS=$((PASS + 1))
   else
     printf "  FAIL  %s\n" "$label"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
   fi
 }
 
@@ -88,6 +97,7 @@ echo
 echo "-- Language Runtimes (mise) --"
 if command -v mise >/dev/null 2>&1; then
   export MISE_GLOBAL_CONFIG_FILE="$HOME/.dotfiles/.mise.toml"
+  eval "$(mise activate bash 2>/dev/null)" || true
   check "python"  mise which python
   check "node"    mise which node
   check "go"      mise which go

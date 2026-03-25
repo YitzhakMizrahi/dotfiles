@@ -76,7 +76,7 @@ install_brew_tools() {
     ui_warn "Homebrew not found — skipping brew bundle"
     return 0
   fi
-  brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
+  brew bundle --file="$DOTFILES_DIR/Brewfile"
 }
 
 # ── 4. mise Install ──────────────────────────────────────────
@@ -107,7 +107,7 @@ fi
 
 # Re-detect gum after brew bundle (it was just installed)
 step "Brew bundle" install_brew_tools
-if command -v gum &>/dev/null; then
+if [[ "$DOTFILES_CI" -eq 0 ]] && command -v gum &>/dev/null; then
   HAS_GUM=1
 fi
 
