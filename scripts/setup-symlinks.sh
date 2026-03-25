@@ -10,48 +10,42 @@ set -e
 source "$(dirname "$0")/lib/logging.sh"
 
 resolve_path() {
-  echo "$(eval echo $1)"
+  echo "${1/#\~/$HOME}"
 }
 
 link_dotfile() {
-  local target=$(resolve_path "$1")
-  local source=$(resolve_path "$2")
-  local target_dir=$(dirname "$target")
-  local source_dir=$(dirname "$source")
+  local target
+  local source
+  target=$(resolve_path "$1")
+  source=$(resolve_path "$2")
 
-  echo -e "\n🕓 Checking $target..."
+  info "Checking $target..."
 
-  while true; do
-    if [[ ! -e "$source" && ! -L "$source" ]]; then
-      warn "Source missing: $source"
-      mkdir -p "$source_dir" && created "$source_dir"
-      touch "$source" && touched "$source"
-      continue
+  # Source must exist in the repo — if it doesn't, that's a real problem
+  if [[ ! -e "$source" ]]; then
+    warn "Source missing: $source — skipping."
+    return 0
+  fi
+
+  # Target is already a correct symlink
+  if [[ -L "$target" ]]; then
+    local actual_link
+    actual_link="$(readlink "$target")"
+    if [[ "$actual_link" == "$source" ]]; then
+      success "OK: $target"
+      return 0
     fi
+    warn "Incorrect link. Fixing: $target"
+    rm -f "$target"
+  elif [[ -e "$target" ]]; then
+    warn "Target exists and is not a symlink: $target — skipping."
+    return 0
+  fi
 
-    if [[ -L "$target" ]]; then
-      actual_link="$(readlink "$target")"
-      if [[ "$actual_link" != "$source" ]]; then
-        warn "Incorrect link. Removing: $target"
-        rm -f "$target"
-        continue
-      fi
-    elif [[ -e "$target" ]]; then
-      warn "Target exists and is not a symlink. Skipping."
-      break
-    fi
-
-    if [[ ! -L "$target" ]]; then
-      mkdir -p "$target_dir" && created "$target_dir"
-      ln -nsf "$source" "$target" && echo -e "\033[1;36m🔗 Linked: $target → $source\033[0m" || fail "Failed to link $target"
-      continue
-    fi
-
-    success "OK: $target → $source"
-    break
-  done
-
-  divider
+  # Create parent directory and symlink
+  mkdir -p "$(dirname "$target")"
+  ln -sf "$source" "$target"
+  success "Linked: $target → $source"
 }
 
 # ── Symlink Targets ───────────────────────────────────────────
@@ -59,21 +53,20 @@ declare -A SYMLINKS=(
   ["~/.zshrc"]="~/.dotfiles/.zshrc"
   ["~/.tmux.conf"]="~/.dotfiles/.tmux.conf"
   ["~/.gitconfig"]="~/.dotfiles/.gitconfig"
-  ["~/.config/starship.toml"]="~/.dotfiles/.config/starship.toml"
-  ["~/.config/yazi"]="~/.dotfiles/.config/yazi"
   ["~/.config/lsd/config.yaml"]="~/.dotfiles/.config/lsd/config.yaml"
   ["~/.config/gh/config.yml"]="~/.dotfiles/.config/gh/config.yml"
   ["~/.config/lazygit/config.yml"]="~/.dotfiles/.config/lazygit/config.yml"
-  ["~/bin/vault-open"]="~/.dotfiles/bin/vault-open"
-  ["~/bin/vault-close"]="~/.dotfiles/bin/vault-close"
-  ["~/bin/lxc-dev"]="~/.dotfiles/bin/lxc-dev"
+  ["~/.config/wezterm/wezterm.lua"]="~/.dotfiles/.config/wezterm/wezterm.lua"
 )
 
 # ── Main ──────────────────────────────────────────────────────
-echo -e "\n\033[1;36m🔗 Initializing Dotfile Symlink Setup...\033[0m"
+echo
+info "Initializing dotfile symlink setup..."
+echo
 
 for target in "${!SYMLINKS[@]}"; do
   link_dotfile "$target" "${SYMLINKS[$target]}"
 done
 
-info "Symlinks checked, fixed, and ready."
+echo
+success "Symlinks checked and ready."
