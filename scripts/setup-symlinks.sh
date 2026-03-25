@@ -7,14 +7,7 @@
 
 set -e
 
-# ── Logging ───────────────────────────────────────────────────
-info()    { echo -e "\033[1;34mℹ️  $1\033[0m"; }
-success() { echo -e "\033[1;32m✅ $1\033[0m"; }
-warn()    { echo -e "\033[1;33m⚠️  $1\033[0m"; }
-fail()    { echo -e "\033[1;31m❌ $1\033[0m"; }
-created() { echo -e "\033[1;35m📁 Created directory: $1\033[0m"; }
-touched() { echo -e "\033[1;36m📄 Created file: $1\033[0m"; }
-divider() { echo -e "\033[2m──────────────────────────────────────────────\033[0m"; }
+source "$(dirname "$0")/lib/logging.sh"
 
 resolve_path() {
   echo "$(eval echo $1)"
@@ -73,7 +66,7 @@ declare -A SYMLINKS=(
   ["~/.config/lazygit/config.yml"]="~/.dotfiles/.config/lazygit/config.yml"
   ["~/bin/vault-open"]="~/.dotfiles/bin/vault-open"
   ["~/bin/vault-close"]="~/.dotfiles/bin/vault-close"
-  ["~/bin/pkgx"]="~/.dotfiles/bin/pkgx"
+  ["~/bin/lxc-dev"]="~/.dotfiles/bin/lxc-dev"
 )
 
 # ── Main ──────────────────────────────────────────────────────
