@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VAULT_MNT="$HOME/vault"
+
+if ! mountpoint -q "$VAULT_MNT"; then
+  echo "Vault is not mounted"
+  exit 0
+fi
+
+fusermount -u "$VAULT_MNT"
+echo "Vault unmounted"

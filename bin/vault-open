@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VAULT_ENC="$HOME/vault_encrypted"
+VAULT_MNT="$HOME/vault"
+
+if mountpoint -q "$VAULT_MNT"; then
+  echo "Vault is already mounted at $VAULT_MNT"
+  exit 0
+fi
+
+gocryptfs "$VAULT_ENC" "$VAULT_MNT"
+echo "Vault mounted at $VAULT_MNT"
