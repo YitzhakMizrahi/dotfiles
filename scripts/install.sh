@@ -133,6 +133,31 @@ if [[ -f "$DOTFILES_DIR/scripts/post-validate.sh" ]]; then
   bash "$DOTFILES_DIR/scripts/post-validate.sh"
 fi
 
+# ── Legacy Runtime Cleanup ─────────────────────────────────────
+LEGACY_DIRS=("$HOME/.pyenv" "$HOME/.nvm" "$HOME/.goenv")
+FOUND_LEGACY=()
+for dir in "${LEGACY_DIRS[@]}"; do
+  [[ -d "$dir" ]] && FOUND_LEGACY+=("$dir")
+done
+
+if [[ ${#FOUND_LEGACY[@]} -gt 0 ]] && command -v mise &>/dev/null; then
+  echo
+  ui_warn "Legacy runtime managers detected:"
+  for dir in "${FOUND_LEGACY[@]}"; do
+    echo "    $(basename "$dir")  →  $dir"
+  done
+  echo
+  ui_info "mise is now managing your runtimes (Python, Node, Go, Rust)."
+  if ui_confirm "Remove legacy runtime directories?"; then
+    for dir in "${FOUND_LEGACY[@]}"; do
+      rm -rf "$dir"
+      ui_success "Removed $dir"
+    done
+  else
+    ui_info "Kept legacy dirs. You can remove them later manually."
+  fi
+fi
+
 # ── Offer Shell Restart ───────────────────────────────────────
 echo
 if ui_confirm "Install complete! Restart shell?"; then
