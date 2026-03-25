@@ -1,12 +1,13 @@
-# 🎨 Perfect Gruvbox Starship Configuration
-# Clean, functional, and beautiful - combining the best of all approaches
+# Gruvbox Starship — clean, functional, cross-platform
+
+command_timeout = 1000
 
 format = """
 $directory\
 $git_branch\
 $git_status\
-$git_metrics\
 $fill\
+$git_metrics\
 $python\
 $lua\
 $nodejs\
@@ -20,7 +21,9 @@ $package\
 $aws\
 $docker_context\
 $jobs\
+$status\
 $cmd_duration\
+$time\
 $line_break\
 $character"""
 
@@ -85,27 +88,24 @@ truncate_to_repo = false
 [git_branch]
 symbol = ' '
 style = 'fg:aqua'
-format = '[on](fg:fg4) [$symbol$branch ]($style)'
+format = '[$symbol$branch ]($style)'
 
-# Git status - informative but not overwhelming
 [git_status]
-style = "fg:red"
-format = "([$all_status$ahead_behind]($style) )"
-ahead = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+format = '([$staged](fg:green)[$modified](fg:yellow)[$untracked](fg:gray)[$deleted$conflicted](fg:red)[$ahead_behind](fg:aqua) )'
+ahead = "↑${count}"
+behind = "↓${count}"
+diverged = "↕↑${ahead_count}↓${behind_count}"
 deleted = "✘"
 modified = "!"
-staged = "+"
+staged = "●"
 untracked = "?"
 renamed = "»"
 conflicted = "="
 
-
 # Git metrics - shows actual line changes (this is gold!)
 [git_metrics]
-added_style = 'fg:green'
-deleted_style = 'fg:red'
+added_style = 'fg:green_dim'
+deleted_style = 'fg:red_dim'
 format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
 disabled = false
 
@@ -117,9 +117,7 @@ symbol = ' '
 [python]
 symbol = ' '
 style = 'blue'
-format = '[${symbol}${pyenv_prefix}(${version} )]($style)'
-pyenv_version_name = true
-pyenv_prefix = ''
+format = '[${symbol}(${version} )]($style)'
 
 # Node.js
 [nodejs]
@@ -187,7 +185,6 @@ symbol = " "
 style = 'blue'
 format = '[$symbol$context ]($style)'
 detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
-detect_extensions = ['Dockerfile']
 only_with_files = true
 
 # Jobs - background processes
@@ -199,9 +196,9 @@ format = '[$symbol$number ]($style)'
 
 # Command duration - performance feedback
 [cmd_duration]
-min_time = 500
+min_time = 2000
 style = 'fg:gray'
-format = '[$duration ]($style)'
+format = '[ $duration ]($style)'
 
 # Character - the prompt symbol
 [character]
@@ -217,10 +214,10 @@ disabled = false
 
 # Time display
 [time]
-disabled = true
+disabled = false
 time_format = "%R"
-style = 'fg:gray'
-format = '[$time ]($style)'
+style = 'fg:gray_dim'
+format = '[ $time ]($style)'
 
 # Memory usage
 [memory_usage]
@@ -249,7 +246,7 @@ style = 'bold fg:yellow'
 [status]
 style = 'fg:red'
 symbol = '✖ '
-format = '[\[$symbol $common_meaning$signal_name$maybe_int\] ]($style)'
+format = '[\[$symbol$common_meaning$signal_name$maybe_int\] ]($style)'
 map_symbol = true
 disabled = false
 
@@ -263,4 +260,16 @@ disabled = true
 [conda]
 style = 'fg:green'
 format = '[$symbol$environment ]($style)'
+disabled = true
+
+# ── Disabled Modules (ready to enable) ────────────────────────
+
+[os]
+disabled = true
+
+[hostname]
+ssh_only = true
+disabled = true
+
+[sudo]
 disabled = true

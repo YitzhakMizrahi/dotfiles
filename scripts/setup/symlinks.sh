@@ -8,6 +8,7 @@
 set -e
 
 source "$(dirname "$0")/../lib/ui.sh"
+source "$(dirname "$0")/../lib/paths.sh"
 
 resolve_path() {
   echo "${1/#\~/$HOME}"
@@ -62,6 +63,24 @@ SYMLINKS=(
 for entry in "${SYMLINKS[@]}"; do
   link_dotfile "${entry%%|*}" "${entry##*|}"
 done
+
+# ── WSL: Copy wezterm config to Windows side ──────────────────
+# Wezterm runs on Windows and needs its config before WSL boots,
+# so we copy (not symlink) to the Windows filesystem.
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  win_user=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r\n')
+  if [[ -n "$win_user" ]]; then
+    win_wezterm_dir="/mnt/c/Users/$win_user/.config/wezterm"
+    wezterm_src="$DOTFILES_DIR/.config/wezterm/wezterm.lua"
+    if [[ -f "$wezterm_src" ]]; then
+      mkdir -p "$win_wezterm_dir"
+      cp "$wezterm_src" "$win_wezterm_dir/wezterm.lua"
+      ui_success "Synced wezterm.lua → $win_wezterm_dir"
+    fi
+  else
+    ui_warn "Could not detect Windows username — skipping wezterm sync"
+  fi
+fi
 
 echo
 ui_success "Symlinks checked and ready"
