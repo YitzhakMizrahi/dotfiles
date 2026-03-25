@@ -95,7 +95,7 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 
 | Script | Purpose |
 |--------|---------|
-| `bin/dotfiles` | CLI — test, update, doctor, edit |
+| `bin/dotfiles` | CLI — install, update, doctor, test, edit |
 | `scripts/install.sh` | Main orchestrator |
 | `scripts/doctor.sh` | Version checks and final checklist |
 | `scripts/setup/symlinks.sh` | Symlinks tracked config files |
@@ -114,28 +114,33 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 | `scripts/lib/paths.sh` | Central path constants (DOTFILES_DIR, ZINIT_HOME, etc.) |
 | `scripts/lib/brew.sh` | Homebrew path detection (`brew_ensure_path`) |
 | `scripts/lib/tools.sh` | Brewfile/mise parser and formula-to-command mapping |
-| `scripts/lib/logging.sh` | Legacy logging helpers |
 
 ---
 
-## Testing
+## CLI
 
 ```bash
-# Full isolated CI test via Docker
-dotfiles test
-
-# Interactive test — see Gum UI, prompts, full experience
-dotfiles test -i
-
-# Check current machine state
-dotfiles doctor
-
-# Pull latest + update tools + re-link
-dotfiles update
-
-# Open dotfiles in $EDITOR
-dotfiles edit
+dotfiles update       # Pull latest, upgrade tools and runtimes, re-link
+dotfiles doctor       # Validate tools, symlinks, runtimes, environment
+dotfiles test         # Full CI test via Docker (automated)
+dotfiles test -i      # Interactive Docker test (see Gum UI, prompts)
+dotfiles edit         # Open dotfiles directory in $EDITOR
 ```
+
+## Testing
+
+The CI test builds a clean Ubuntu container and runs the full installer:
+
+```bash
+dotfiles test         # Build and validate (38 checks)
+```
+
+Set `DOTFILES_CI=1` to run the installer non-interactively (skips prompts,
+uses defaults). This is what `dotfiles test` uses internally.
+
+On WSL, font installation is automatically skipped (use your Windows
+terminal's font settings instead). Override with `DOTFILES_FORCE_FONTS=1`
+for testing.
 
 ---
 

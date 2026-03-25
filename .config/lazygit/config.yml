@@ -1,0 +1,7 @@
+gui:
+  nerdFontsVersion: "3"
+  showCommandLog: false
+  showRandomTip: false
+notARepository: skip
+git:
+  autoFetch: true
