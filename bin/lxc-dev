@@ -19,7 +19,7 @@ case "${1:-}" in
     lxc restore bootstrap-test clean-setup
     ;;
   *)
-    echo "Usage: pkgx {build|exec|push|run [args...]|restore}"
+    echo "Usage: lxc-dev {build|exec|push|run [args...]|restore}"
     exit 1
     ;;
 esac
