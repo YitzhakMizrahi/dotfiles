@@ -16,26 +16,28 @@ case "${1:-}" in
     fi
     ;;
   update)
-    echo "Updating dotfiles..."
-    git -C "$DOTFILES_DIR" pull --rebase --autostash
+    source "$DOTFILES_DIR/scripts/lib/ui.sh"
+    ui_log_init
+
+    banner "Dotfiles Update" "$(hostname) · $(date +%Y-%m-%d)"
+
+    step "Pull latest changes" git -C "$DOTFILES_DIR" pull --rebase --autostash
 
     if command -v brew &>/dev/null; then
-      echo "Updating Homebrew and running bundle..."
-      brew update
-      brew bundle --file="$DOTFILES_DIR/Brewfile"
-      brew cleanup -s
+      step "Homebrew update" brew update
+      step "Brew bundle" brew bundle --file="$DOTFILES_DIR/Brewfile"
+      step "Brew cleanup" brew cleanup -s
     fi
 
     if command -v mise &>/dev/null; then
-      echo "Updating runtimes..."
       export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
-      mise install --yes
+      step "Runtime update (mise)" mise install --yes
     fi
 
-    echo "Re-linking symlinks..."
-    bash "$DOTFILES_DIR/scripts/setup/symlinks.sh"
+    step "Re-link symlinks" bash "$DOTFILES_DIR/scripts/setup/symlinks.sh"
 
-    echo "Done."
+    echo
+    ui_success "Dotfiles updated"
     ;;
   doctor)
     bash "$DOTFILES_DIR/scripts/doctor.sh"

@@ -85,6 +85,8 @@ check "btop"      command -v btop
 check "starship"  command -v starship
 check "fastfetch" command -v fastfetch
 check "duf"       command -v duf
+check "dust"      command -v dust
+check "jq"        command -v jq
 check "tldr"      command -v tldr
 echo
 

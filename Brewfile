@@ -23,6 +23,8 @@ brew "fzf"                 # Fuzzy finder
 brew "zoxide"              # cd replacement (smart directory jumper)
 brew "git-delta"           # Git diff pager
 brew "duf"                 # df replacement (disk usage)
+brew "dust"                # du replacement (directory space usage)
+brew "jq"                  # JSON processor
 
 # ── Dev Tools ─────────────────────────────────────────────────
 brew "gum"                 # Elegant shell script UI (Charmbracelet)
