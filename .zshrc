@@ -19,26 +19,45 @@ else
   echo "Zinit not found, please run the install script again." >&2
 fi
 
-# Plugins ───────────────────────────────────────────────────────────────
+# Plugins ─────────────────────────────────────────────────────────────
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light Aloxaf/fzf-tab
 zinit light starship/starship
 _zshrc_timing_log "zinit"
 
-# 🌍 ── Environment ─────────────────────────────────────────────────────
-export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
-export PATH="$HOME/bin:$PATH"
-export PATH="$HOME/.dotfiles/scripts:$PATH"
-# NEW: local user binaries first so lsd / starship via cargo/pipx work
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+# 🌍 ── Environment ───────────────────────────────────────────────────
 export TERM="xterm-256color"
-# Snap support
-export PATH="$PATH:/snap/bin"
+
+path_prepend() {
+  [[ -d "$1" ]] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1:$PATH" ;;
+  esac
+}
+
+path_append() {
+  [[ -d "$1" ]] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$PATH:$1" ;;
+  esac
+}
+
+# Personal/user binaries
+path_prepend "$HOME/bin"
+path_prepend "$HOME/.local/bin"
+path_prepend "$HOME/.cargo/bin"
+
+# Optional tool paths
+path_prepend "$HOME/tools/godot"
+path_append "/snap/bin"
+
+export PATH
 _zshrc_timing_log "env setup"
 
-# 📝 ── History Settings ───────────────────────────────────────────────
+# 📝 ── History Settings ──────────────────────────────────────────────
 HISTFILE=~/.zsh_history
 HISTSIZE=5000
 SAVEHIST=5000
@@ -53,53 +72,60 @@ setopt APPEND_HISTORY
 unsetopt SHARE_HISTORY
 _zshrc_timing_log "history"
 
-# 🍺 ── Homebrew ───────────────────────────────────────────────────────
+# 🍺 ── Homebrew ──────────────────────────────────────────────────────
 if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
-  eval "$( $HOME/.linuxbrew/bin/brew shellenv)"
+  eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
 elif [[ -x "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 _zshrc_timing_log "homebrew"
 
-# 🟨 ── Go (goenv) ───────────────────────────────────────────────────────
+# 🟨 ── Go (goenv) ────────────────────────────────────────────────────
 export GOENV_ROOT="$HOME/.goenv"
-export PATH="$GOENV_ROOT/bin:$PATH"
-eval "$(goenv init -)"
+path_prepend "$GOENV_ROOT/bin"
+if command -v goenv >/dev/null 2>&1; then
+  eval "$(goenv init -)"
+fi
 _zshrc_timing_log "goenv"
 
-# 🐍 ── pyenv ───────────────────────────────────────────────────────────────
+# 🐍 ── Python (pyenv) ────────────────────────────────────────────────
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
+path_prepend "$PYENV_ROOT/bin"
 if command -v pyenv >/dev/null 2>&1; then
   eval "$(pyenv init - zsh)"
-  eval "$(pyenv virtualenv-init -)"
+  if pyenv commands | grep -qx 'virtualenv-init'; then
+    eval "$(pyenv virtualenv-init -)"
+  fi
 fi
 _zshrc_timing_log "pyenv"
 
-# 🟢 ── Lazy‑load NVM ───────────────────────────────────────────────────────
+# 🟢 ── Lazy-load NVM ─────────────────────────────────────────────────
 export NVM_DIR="$HOME/.nvm"
-nvm()  { unset -f nvm ; source "$NVM_DIR/nvm.sh" ; nvm  "$@"; }
-node() { unset -f node; source "$NVM_DIR/nvm.sh" ; node "$@"; }
-npm()  { unset -f npm ; source "$NVM_DIR/nvm.sh" ; npm  "$@"; }
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  nvm()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; nvm "$@"; }
+  node() { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; node "$@"; }
+  npm()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; npm "$@"; }
+  npx()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; npx "$@"; }
+fi
 _zshrc_timing_log "nvm (lazy)"
 
-# 🔐 ── SSH Agent ───────────────────────────────────────────────────────────────
+# 🔐 ── SSH Agent ─────────────────────────────────────────────────────
 if ! pgrep -u "$USER" ssh-agent >/dev/null; then
   eval "$(ssh-agent -s)" >/dev/null
 fi
 alias addkey='ssh-add ~/.ssh/id_ed25519'
 _zshrc_timing_log "ssh-agent"
 
-# 📁 ── Aliases: File Navigation ───────────────────────────────────────────────────────
+# 📁 ── Aliases: File Navigation ──────────────────────────────────────
 alias ls='lsd --group-dirs=first --icon=always'
 alias ll='ls -lh'
 alias la='ls -A'
 alias lla='ls -lAh'
 _zshrc_timing_log "file nav aliases"
 
-# 🐳 ── Aliases: Docker ───────────────────────────────────────────────────────
+# 🐳 ── Aliases: Docker ───────────────────────────────────────────────
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
 alias dlogs='docker logs --tail 100 -f'
 alias dexec='docker exec -it'
@@ -107,7 +133,7 @@ alias dstop='docker stop $(docker ps -q)'
 alias dclean='docker container prune -f && docker system prune -a -f --volumes'
 _zshrc_timing_log "docker aliases"
 
-# 🌱 ── Aliases: Git ───────────────────────────────────────────────────────
+# 🌱 ── Aliases: Git ──────────────────────────────────────────────────
 alias gcl='git clone'
 alias ga='git add'
 alias gc='git commit'
@@ -120,7 +146,7 @@ alias gco='git checkout'
 alias gm='git merge'
 _zshrc_timing_log "git aliases"
 
-# 🛠️ ── Aliases: Utility ───────────────────────────────────────────────────────
+# 🛠️ ── Aliases: Utility ─────────────────────────────────────────────
 alias reload='source ~/.zshrc'
 alias reload-t='SOURCE_TIMING=true source ~/.zshrc'
 alias py='python3'
@@ -128,59 +154,45 @@ alias ipy='ipython'
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
+alias vo='vault-open'
+alias vc='vault-close'
 _zshrc_timing_log "utility aliases"
 
-# 🛠️ ── Aliases: Personal Scripts ───────────────────────────────────────
+# 🛠️ ── Aliases: Personal Scripts ────────────────────────────────────
 alias sl='bash ~/.dotfiles/scripts/scripts-list.sh'
-alias us='~/.dotfiles/scripts/update-system.sh'
+alias us='bash ~/.dotfiles/scripts/update-system.sh'
 alias clup='bash ~/.dotfiles/scripts/cleanup.sh'
 alias diu='bash ~/.dotfiles/scripts/disk-usage.sh'
 alias book='firefox ~/books/book/book/index.html 2>/dev/null'
 _zshrc_timing_log "script aliases"
 
-# ⚙️ ── Functions ───────────────────────────────────────────────────────
+# ⚙️ ── Functions ─────────────────────────────────────────────────────
 mkcd() { mkdir -p "$1" && cd "$1"; }
-
-pkgx() {
-  case "$1" in
-    build)   go build -o build/bin/bootstrap-cli main.go ;;
-    exec)    lxc exec bootstrap-test -- su - devuser ;;
-    push)    lxc file push build/bin/bootstrap-cli bootstrap-test/home/devuser/bootstrap-cli --mode=755 ;;
-    run)     shift ; lxc exec bootstrap-test -- su - devuser -c "cd /home/devuser && ./bootstrap-cli $*" ;;
-    restore) lxc restore bootstrap-test clean-setup ;;
-    *) echo "Usage: pkgx {build|push|run [args...]|restore}" ; return 1 ;;
-  esac
-}
 _zshrc_timing_log "functions"
 
-# 💬 ── Prompt (starship) ───────────────────────────────────────────────────────
+# 💬 ── Prompt (starship) ─────────────────────────────────────────────
 if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
   export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+  eval "$(starship init zsh)"
 else
   PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
 fi
 _zshrc_timing_log "prompt"
 
-# ⌨️  ── Keybindings ───────────────────────────────────────────────────────
-# Fix for paste errors (^[[200~) — enables bracketed paste
+# ⌨️  ── Keybindings ──────────────────────────────────────────────────
 autoload -Uz bracketed-paste-magic
 zle -N bracketed-paste bracketed-paste-magic
-# Ctrl + Arrow: word movement
-bindkey "^[[1;5C" forward-word        # Ctrl + →
-bindkey "^[[1;5D" backward-word       # Ctrl + ←
-# Ctrl + Del / Backspace: word deletion
-bindkey "^[[3;5~" kill-word           # Ctrl + Delete
-bindkey "^H" backward-kill-word       # Ctrl + Backspace
-# Ctrl + Up/Down for history search
+
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+bindkey "^[[3;5~" kill-word
+bindkey "^H" backward-kill-word
 bindkey "^[[1;5A" history-search-backward
 bindkey "^[[1;5B" history-search-forward
 _zshrc_timing_log "keybindings"
 
-
-# 🔄 ── Completion ───────────────────────────────────────────────────────
+# 🔄 ── Completion ────────────────────────────────────────────────────
 autoload -Uz compinit
-# First run: create cache (-C); subsequent runs: normal
 if [[ ! -f ${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${ZSH_VERSION} ]]; then
   compinit -C
 else
@@ -188,18 +200,20 @@ else
 fi
 _zshrc_timing_log "compinit"
 
-# 🧭 ── zoxide ───────────────────────────────────────────────────────
+# 🧭 ── zoxide ────────────────────────────────────────────────────────
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init --cmd cd zsh)"
 fi
 alias zi='__zoxide_zi'
 _zshrc_timing_log "zoxide"
 
-# 🕒 ── Final Timing Output ───────────────────────────────────────────────
+# 🕒 ── Final Timing Output ───────────────────────────────────────────
 if [[ $SOURCE_TIMING == "true" ]]; then
   ZSHRC_END_TIME=$(date +%s%N)
   ZSHRC_DURATION_MS=$(( (ZSHRC_END_TIME - __zshrc_timer_start) / 1000000 ))
   echo "🕒 .zshrc fully loaded in ${ZSHRC_DURATION_MS} ms"
 fi
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export PATH="$HOME/tools/godot:$PATH"
+
+if [[ -s "$NVM_DIR/bash_completion" ]]; then
+  . "$NVM_DIR/bash_completion"
+fi
