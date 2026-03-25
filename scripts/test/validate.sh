@@ -9,14 +9,13 @@
 
 set -e
 
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_SCRIPT_DIR/../lib/paths.sh"
+source "$_SCRIPT_DIR/../lib/brew.sh"
+source "$_SCRIPT_DIR/../lib/tools.sh"
+
 # Ensure Homebrew is on PATH (needed for Docker/LXC test environments)
-if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
-  eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
-elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+brew_ensure_path
 
 PASS=0
 FAIL=0
@@ -51,43 +50,23 @@ echo
 
 # ── Symlinks ──────────────────────────────────────────────────
 echo "-- Symlinks --"
-check_symlink "$HOME/.zshrc"
-check_symlink "$HOME/.tmux.conf"
-check_symlink "$HOME/.gitconfig"
-check_symlink "$HOME/.config/lsd/config.yaml"
-check_symlink "$HOME/.config/gh/config.yml"
-check_symlink "$HOME/.config/lazygit/config.yml"
-check_symlink "$HOME/.config/wezterm/wezterm.lua"
+SYMLINKS_SCRIPT="$HOME/.dotfiles/scripts/setup/symlinks.sh"
+if [[ -f "$SYMLINKS_SCRIPT" ]]; then
+  while IFS= read -r target; do
+    check_symlink "${target/#\~/$HOME}"
+  done < <(grep -oP '^\s*\["\K[^"]+' "$SYMLINKS_SCRIPT")
+else
+  printf "  FAIL  symlinks.sh not found\n"
+  FAIL=$((FAIL + 1))
+fi
 echo
 
-# ── Core Tools ────────────────────────────────────────────────
-echo "-- Core Tools --"
-check "git"       command -v git
-check "zsh"       command -v zsh
-check "tmux"      command -v tmux
-check "curl"      command -v curl
-check "wget"      command -v wget
-echo
-
-# ── Modern CLI ────────────────────────────────────────────────
-echo "-- Modern CLI Tools --"
-check "bat"       command -v bat
-check "lsd"       command -v lsd
-check "fd"        command -v fd
-check "ripgrep"   command -v rg
-check "fzf"       command -v fzf
-check "zoxide"    command -v zoxide
-check "delta"     command -v delta
-check "lazygit"   command -v lazygit
-check "yazi"      command -v yazi
-check "gh"        command -v gh
-check "btop"      command -v btop
-check "starship"  command -v starship
-check "fastfetch" command -v fastfetch
-check "duf"       command -v duf
-check "dust"      command -v dust
-check "jq"        command -v jq
-check "tldr"      command -v tldr
+# ── Installed Tools (from Brewfile) ──────────────────────────────
+echo "-- Installed Tools --"
+while IFS= read -r formula; do
+  tool_is_skipped "$formula" && continue
+  check "$formula" command -v "$(tool_cmd "$formula")"
+done < <(brewfile_formulas "$DOTFILES_DIR/Brewfile")
 echo
 
 # ── Runtime Manager ───────────────────────────────────────────
@@ -98,12 +77,10 @@ echo
 # ── Language Runtimes ─────────────────────────────────────────
 echo "-- Language Runtimes (mise) --"
 if command -v mise >/dev/null 2>&1; then
-  export MISE_GLOBAL_CONFIG_FILE="$HOME/.dotfiles/.mise.toml"
   eval "$(mise activate bash 2>/dev/null)" || true
-  check "python"  mise which python
-  check "node"    mise which node
-  check "go"      mise which go
-  check "rust"    mise which rustc
+  while IFS= read -r runtime; do
+    check "$runtime" mise which "$(runtime_cmd "$runtime")"
+  done < <(mise_runtimes)
 else
   printf "  SKIP  mise not installed — skipping runtime checks\n"
 fi
@@ -111,9 +88,9 @@ echo
 
 # ── Shell Config ──────────────────────────────────────────────
 echo "-- Shell Config --"
-check "zinit installed" test -d "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-check "starship config exists" test -f "$HOME/.dotfiles/.config/starship.toml"
-check "gitconfig.local exists" test -f "$HOME/.gitconfig.local"
+check "zinit installed" test -d "$ZINIT_HOME"
+check "starship config exists" test -f "$STARSHIP_CONFIG"
+check "gitconfig.local exists" test -f "$GITCONFIG_LOCAL"
 echo
 
 # ── Summary ───────────────────────────────────────────────────

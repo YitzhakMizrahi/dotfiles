@@ -8,13 +8,13 @@
 set -e
 
 source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/lib/paths.sh"
+source "$(dirname "$0")/lib/brew.sh"
 
 # ── Root Check ────────────────────────────────────────────────
 if [[ "$EUID" -eq 0 ]]; then
   ui_fail "Please do not run as root."
 fi
-
-DOTFILES_DIR="$HOME/.dotfiles"
 chmod +x "$DOTFILES_DIR/scripts/"*.sh "$DOTFILES_DIR/scripts/"**/*.sh 2>/dev/null || true
 chmod +x "$DOTFILES_DIR/bin/"* 2>/dev/null || true
 
@@ -76,15 +76,7 @@ install_homebrew() {
   fi
 
   # Activate Homebrew in current session
-  if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-  elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
-    eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
-  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  elif [[ -x "/usr/local/bin/brew" ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-  fi
+  brew_ensure_path
 
   ui_success "Homebrew installed"
 }
@@ -100,11 +92,7 @@ fi
 install_homebrew
 
 # Ensure Homebrew is on PATH
-if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+brew_ensure_path
 
 # Install gum first for polished UI in remaining steps
 if [[ "$DOTFILES_CI" -eq 0 ]] && command -v brew &>/dev/null && ! command -v gum &>/dev/null; then
@@ -131,7 +119,6 @@ ui_success "Brew bundle complete"
 
 # mise — run directly since it needs shell env
 if command -v mise &>/dev/null; then
-  export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
   step "Language runtimes (mise)" mise install --yes || true
 else
   ui_warn "mise not found — skipping runtime installation"
@@ -142,15 +129,14 @@ timed_section "Configuration"
 step "Dotfile symlinks" bash "$DOTFILES_DIR/scripts/setup/symlinks.sh"
 
 # Zinit install (automated — no user interaction)
-ZINIT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-if [[ -d "$ZINIT_DIR" ]]; then
+if [[ -d "$ZINIT_HOME" ]]; then
   ui_success "Zinit already installed"
 else
-  step "Zinit plugin manager" git clone --depth 1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_DIR"
+  step "Zinit plugin manager" git clone --depth 1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
 
 # Pre-download Zinit plugins (needs .zshrc symlink + TTY, no gum spin)
-if command -v zsh >/dev/null 2>&1 && [[ -d "$ZINIT_DIR" ]]; then
+if command -v zsh >/dev/null 2>&1 && [[ -d "$ZINIT_HOME" ]]; then
   ui_info "Pre-downloading Zinit plugins..."
   zsh -ic "exit" || true
   ui_success "Zinit plugins ready"

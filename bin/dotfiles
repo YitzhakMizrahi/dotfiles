@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES_DIR="$HOME/.dotfiles"
+source "$HOME/.dotfiles/scripts/lib/paths.sh"
 
 case "${1:-}" in
   test)
@@ -30,7 +30,6 @@ case "${1:-}" in
     fi
 
     if command -v mise &>/dev/null; then
-      export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
       step "Runtime update (mise)" mise install --yes
     fi
 

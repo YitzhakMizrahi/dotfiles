@@ -8,9 +8,9 @@
 set -e
 
 source "$(dirname "$0")/../lib/ui.sh"
+source "$(dirname "$0")/../lib/paths.sh"
 
 # ── Check if already fully configured ────────────────────────
-GITCONFIG_LOCAL="$HOME/.gitconfig.local"
 GIT_CONFIGURED=false
 SSH_CONFIGURED=false
 

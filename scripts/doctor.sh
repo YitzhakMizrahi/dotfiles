@@ -8,6 +8,8 @@
 set -e
 
 source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/lib/paths.sh"
+source "$(dirname "$0")/lib/tools.sh"
 
 # ── Tool Version Checks ──────────────────────────────────────
 # Strip ANSI escape sequences and terminal responses from version output
@@ -51,25 +53,10 @@ stty -echo 2>/dev/null || true
 subsection "Installed Tools"
 echo
 
-print_version "Git" "git"
-print_version "Zsh" "zsh"
-print_version "tmux" "tmux"
-print_version "Starship" "starship"
-print_version "gum" "gum"
-print_version "bat" "bat"
-print_version "lsd" "lsd"
-print_version "fd" "fd"
-print_version "ripgrep" "rg"
-print_version "fzf" "fzf"
-print_version "zoxide" "zoxide"
-print_version "delta" "delta"
-print_version "dust" "dust"
-print_version "jq" "jq"
-print_version "lazygit" "lazygit"
-print_version "yazi" "yazi"
-print_version "gh" "gh"
-print_version "btop" "btop"
-print_version "fastfetch" "fastfetch"
+while IFS= read -r formula; do
+  tool_is_skipped "$formula" && continue
+  print_version "$(tool_label "$formula")" "$(tool_cmd "$formula")"
+done < <(brewfile_formulas)
 
 # Restore echo and drain any pending terminal responses
 stty echo 2>/dev/null || true
@@ -80,7 +67,6 @@ export TERM="${_SAVED_TERM}"
 subsection "Language Runtimes"
 echo
 if command -v mise >/dev/null 2>&1; then
-  export MISE_GLOBAL_CONFIG_FILE="${MISE_GLOBAL_CONFIG_FILE:-$HOME/.dotfiles/.mise.toml}"
   mise list 2>/dev/null || ui_warn "No runtimes installed yet"
 else
   ui_warn "mise not found — language runtimes not managed"
@@ -101,13 +87,15 @@ check_symlink() {
   fi
 }
 
-check_symlink "$HOME/.zshrc"
-check_symlink "$HOME/.tmux.conf"
-check_symlink "$HOME/.gitconfig"
-check_symlink "$HOME/.config/lsd/config.yaml"
-check_symlink "$HOME/.config/gh/config.yml"
-check_symlink "$HOME/.config/lazygit/config.yml"
-check_symlink "$HOME/.config/wezterm/wezterm.lua"
+# Read symlink targets dynamically from symlinks.sh
+SYMLINKS_SCRIPT="$DOTFILES_DIR/scripts/setup/symlinks.sh"
+if [[ -f "$SYMLINKS_SCRIPT" ]]; then
+  while IFS= read -r target; do
+    check_symlink "${target/#\~/$HOME}"
+  done < <(grep -oP '^\s*\["\K[^"]+' "$SYMLINKS_SCRIPT")
+else
+  ui_warn "symlinks.sh not found — cannot validate"
+fi
 
 # ── Environment Checks ──────────────────────────────────────
 subsection "Environment"
@@ -131,6 +119,23 @@ else
   ui_warn "GitHub CLI not authenticated"
 fi
 
+# Brewfile consistency check
+if command -v brew >/dev/null 2>&1; then
+  BREWFILE="$DOTFILES_DIR/Brewfile"
+  if [[ -f "$BREWFILE" ]]; then
+    if brew bundle check --file="$BREWFILE" &>/dev/null; then
+      ui_success "All Brewfile packages installed"
+    else
+      ui_warn "Missing Brewfile packages:"
+      brew bundle check --verbose --file="$BREWFILE" 2>/dev/null \
+        | grep -oP '→ Formula \K\S+' | while read -r pkg; do
+          echo "    $pkg"
+        done
+      ui_info "Run 'dotfiles update' to install missing packages"
+    fi
+  fi
+fi
+
 # ── Next Steps (only show what's pending) ─────────────────────
 NEXT_STEPS=()
 if command -v gh >/dev/null 2>&1 && ! gh auth status &>/dev/null; then
@@ -139,7 +144,7 @@ fi
 if [[ "$SHELL" != *zsh ]]; then
   NEXT_STEPS+=("    chsh -s \$(which zsh)                   Set Zsh as default shell")
 fi
-if [[ ! -f "$HOME/.gitconfig.local" ]] || ! grep -q "name =" "$HOME/.gitconfig.local" 2>/dev/null; then
+if [[ ! -f "$GITCONFIG_LOCAL" ]] || ! grep -q "name =" "$GITCONFIG_LOCAL" 2>/dev/null; then
   NEXT_STEPS+=("    dotfiles install                        Set up Git identity")
 fi
 

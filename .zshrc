@@ -12,9 +12,13 @@ else
   function _zshrc_timing_log() { :; }
 fi
 
+# 📌 ── Shared Paths ────────────────────────────────────────────────────
+source "$HOME/.dotfiles/scripts/lib/paths.sh"
+source "$HOME/.dotfiles/scripts/lib/brew.sh"
+
 # 🌐 ── Zinit Plugin Manager ──────────────────────────────────────────
-if [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh" ]]; then
-  source "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh"
+if [[ -f "$ZINIT_HOME/zinit.zsh" ]]; then
+  source "$ZINIT_HOME/zinit.zsh"
 else
   echo "Zinit not found, please run the install script again." >&2
 fi
@@ -68,18 +72,11 @@ unsetopt SHARE_HISTORY
 _zshrc_timing_log "history"
 
 # 🍺 ── Homebrew ──────────────────────────────────────────────────────
-if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
-  eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
-elif [[ -x "/opt/homebrew/bin/brew" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+brew_ensure_path
 _zshrc_timing_log "homebrew"
 
 # 🔧 ── mise (language runtimes) ───────────────────────────────────────
 if command -v mise >/dev/null 2>&1; then
-  export MISE_GLOBAL_CONFIG_FILE="$HOME/.dotfiles/.mise.toml"
   eval "$(mise activate zsh)"
 fi
 _zshrc_timing_log "mise"
@@ -143,7 +140,6 @@ _zshrc_timing_log "functions"
 
 # 💬 ── Prompt (starship) ─────────────────────────────────────────────
 if command -v starship >/dev/null 2>&1; then
-  export STARSHIP_CONFIG="$HOME/.dotfiles/.config/starship.toml"
   eval "$(starship init zsh)"
 else
   PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
