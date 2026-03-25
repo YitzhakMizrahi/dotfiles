@@ -78,6 +78,7 @@ export TERM="${_SAVED_TERM}"
 subsection "Language Runtimes"
 echo
 if command -v mise >/dev/null 2>&1; then
+  export MISE_GLOBAL_CONFIG_FILE="${MISE_GLOBAL_CONFIG_FILE:-$HOME/.dotfiles/.mise.toml}"
   mise list 2>/dev/null || ui_warn "No runtimes installed yet"
 else
   ui_warn "mise not found — language runtimes not managed"
