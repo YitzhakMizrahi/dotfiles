@@ -1,59 +1,31 @@
 #!/usr/bin/env bash
 
 # ╭────────────────────────────────────────────────────────────╮
-# │         💻 Zsh + Starship + Shell Enhancements Setup        │
+# │              Zsh + Zinit Shell Setup                       │
 # ╰────────────────────────────────────────────────────────────╯
-# Ensures Zsh plugins, Starship, and prompt configs are in place
+# Installs Zinit plugin manager and offers chsh to Zsh.
+# Does NOT modify .zshrc — it is managed declaratively via the repo.
 
 set -e
 
 source "$(dirname "$0")/lib/logging.sh"
 
-ZSHRC="$HOME/.zshrc"
-ZINIT_HOME="${ZINIT_HOME:-$HOME/.zinit/bin}"
-ZINIT_URL="https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh"
-
-# ── Ensure .zshrc Exists ─────────────────────────────────────
-touch "$ZSHRC"
-
 # ── Zinit Installation ───────────────────────────────────────
-if [[ ! -d "$ZINIT_HOME" ]]; then
-  info "Installing Zinit plugin manager..."
-  bash -c "$(curl -fsSL $ZINIT_URL)"
-  success "Zinit installed."
-else
+ZINIT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+
+if [[ -d "$ZINIT_DIR" ]]; then
   success "Zinit already installed."
-fi
-
-# ── Zinit Init Block ─────────────────────────────────────────
-if ! grep -q "zinit light" "$ZSHRC"; then
-  info "Adding Zinit init block to .zshrc..."
-  cat <<'EOF' >> "$ZSHRC"
-
-# Zinit Plugin Manager
-source "$HOME/.zinit/bin/zinit.zsh"
-zinit light zsh-users/zsh-autosuggestions
-zinit light zsh-users/zsh-syntax-highlighting
-EOF
-  success "Zinit block added to .zshrc."
 else
-  info "Zinit block already present in .zshrc."
-fi
-
-# ── Starship Config ──────────────────────────────────────────
-if ! grep -q 'starship init zsh' "$ZSHRC"; then
-  info "Adding Starship init to .zshrc..."
-  echo 'eval "$(starship init zsh)"' >> "$ZSHRC"
-  echo 'export STARSHIP_CONFIG="$HOME/.config/starship.toml"' >> "$ZSHRC"
-  success "Starship init added to .zshrc."
-else
-  info "Starship already configured in .zshrc."
+  info "Installing Zinit plugin manager..."
+  mkdir -p "$(dirname "$ZINIT_DIR")"
+  git clone --depth 1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_DIR"
+  success "Zinit installed."
 fi
 
 # ── Offer chsh to Zsh ────────────────────────────────────────
 if [[ "$SHELL" != *zsh ]]; then
   echo
-  read -p "⚙️  Make Zsh your default shell? [Y/n]: " change_shell
+  read -p "Make Zsh your default shell? [Y/n]: " change_shell
   change_shell=${change_shell:-Y}
   if [[ "$change_shell" =~ ^[Yy]$ ]]; then
     if command -v zsh >/dev/null 2>&1; then
@@ -67,7 +39,5 @@ if [[ "$SHELL" != *zsh ]]; then
   fi
 fi
 
-# ── Done ─────────────────────────────────────────────────────
 echo
-success "💻 Shell configuration complete!"
-warn "Note: Restart your shell to activate plugin and prompt changes."
+success "Shell configuration complete."
