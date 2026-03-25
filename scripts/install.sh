@@ -110,9 +110,9 @@ ui_info "Installing Homebrew packages..."
 set -o pipefail
 brew bundle --file="$DOTFILES_DIR/Brewfile" 2>&1 | while IFS= read -r line; do
   echo "$line" >> "$DOTFILES_LOG"
-  if [[ "$line" == Installing* ]]; then
+  if [[ "$line" == *Installing* ]]; then
     echo -e "  ${_C_GREEN}✓${_C_RESET} $line"
-  elif [[ "$line" == *"already installed"* || "$line" == Using* ]]; then
+  elif [[ "$line" == *"already installed"* || "$line" == *Using* ]]; then
     echo -e "  ${_C_GRAY}· ${line}${_C_RESET}"
   fi
 done
@@ -120,6 +120,11 @@ set +o pipefail
 ui_success "Brew bundle complete"
 
 # mise — run directly since it needs shell env
+# macOS ARM prebuilt Python binaries have a broken directory layout in mise;
+# compile from source on macOS until upstream fixes it.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export MISE_PYTHON_COMPILE=1
+fi
 if command -v mise &>/dev/null; then
   step "Language runtimes (mise)" mise install --yes || true
 else

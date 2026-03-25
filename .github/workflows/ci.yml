@@ -31,8 +31,6 @@ jobs:
           rm -f "$HOME/.gitconfig"
 
       - name: Install
-        env:
-          MISE_PYTHON_COMPILE: "1"
         run: bash ~/.dotfiles/scripts/install.sh
 
       - name: Validate
