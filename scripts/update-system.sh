@@ -7,36 +7,29 @@
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
 # ── Platform Check ────────────────────────────────────────────
 if ! command -v apt-get &>/dev/null; then
-  fail "APT not found. This script is for Debian/Ubuntu-based systems."
+  ui_fail "APT not found. This script is for Debian/Ubuntu-based systems."
 fi
 
 # ── Confirmation ──────────────────────────────────────────────
-echo
-warn "This will update your system packages."
-read -p "Proceed? [Y/n]: " -n 1 -r
-echo
+banner "System Update" "$(hostname) · $(date +%Y-%m-%d)"
 
-if [[ ! $REPLY =~ ^[Yy]?$ ]]; then
-  info "Update cancelled."
+ui_warn "This will update your system packages."
+echo
+if ! ui_confirm "Proceed with system update?"; then
+  ui_info "Update cancelled."
   exit 0
 fi
 
 # ── Update ────────────────────────────────────────────────────
-info "Updating package lists..."
-sudo apt-get update
-
-info "Upgrading packages..."
-sudo apt-get upgrade -y
-
-info "Running dist-upgrade..."
-sudo apt-get dist-upgrade -y
-
-info "Removing unused packages..."
-sudo apt-get autoremove -y
+echo
+step "Updating package lists" sudo apt-get update -y
+step "Upgrading packages" sudo apt-get upgrade -y
+step "Running dist-upgrade" sudo apt-get dist-upgrade -y
+step "Removing unused packages" sudo apt-get autoremove -y
 
 echo
-success "System updated."
+ui_success "System updated"

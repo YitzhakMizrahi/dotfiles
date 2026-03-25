@@ -8,7 +8,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
 # ── Helpers ───────────────────────────────────────────────────
 get_dir_size() {
@@ -34,12 +34,12 @@ clear_dir() {
   local label="$2"
 
   if [[ ! -d "$dir" ]]; then
-    info "$label — directory does not exist. Skipping."
+    ui_info "$label — directory does not exist"
     return 0
   fi
 
   if [[ -z "$(ls -A "$dir" 2>/dev/null)" ]]; then
-    success "$label — already empty."
+    ui_success "$label — already empty"
     return 0
   fi
 
@@ -48,22 +48,17 @@ clear_dir() {
   total_size=$(get_dir_size "$dir")
   num_files=$(get_num_files "$dir")
 
-  info "$label: $num_files file(s), $total_size total."
-  read -p "  Delete all files? [y/N]: " -n 1 -r
-  echo
-
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
+  ui_info "$label: $num_files file(s), $total_size total"
+  if ui_confirm "  Delete all files in $label?"; then
     rm -rf "${dir:?}"/*
-    success "$label cleared ($total_size freed)."
+    ui_success "$label cleared ($total_size freed)"
   else
-    info "Skipped."
+    ui_info "Skipped"
   fi
 }
 
 # ── Main ──────────────────────────────────────────────────────
-echo
-info "System cleanup"
-echo
+banner "System Cleanup" "$(hostname) · $(date +%Y-%m-%d)"
 
 clear_dir "$HOME/.local/share/Trash/files"       "Trash"
 clear_dir "$HOME/Pictures/Screenshots"            "Screenshots"
@@ -72,4 +67,4 @@ clear_dir "$HOME/snap/chromium/common/.cache"     "Chromium cache"
 clear_dir "$HOME/snap/firefox/common/.cache"      "Firefox cache"
 
 echo
-success "System cleanup complete."
+ui_success "System cleanup complete"
