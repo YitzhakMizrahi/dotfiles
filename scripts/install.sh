@@ -7,11 +7,11 @@
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
 # ── Root Check ────────────────────────────────────────────────
 if [[ "$EUID" -eq 0 ]]; then
-  fail "Please do not run as root."
+  ui_fail "Please do not run as root."
 fi
 
 DOTFILES_DIR="$HOME/.dotfiles"
@@ -34,30 +34,26 @@ detect_platform() {
 }
 
 PLATFORM=$(detect_platform)
-info "Detected platform: $PLATFORM"
 
-# ── Step Runner ───────────────────────────────────────────────
-run_step() {
-  local script="$1"
-  local label="$2"
-  if [[ -f "$DOTFILES_DIR/scripts/$script" ]]; then
-    info "$label..."
-    bash "$DOTFILES_DIR/scripts/$script"
-    success "$label complete."
-  else
-    warn "$label script not found: $script"
+banner "Dotfiles Installer" "$PLATFORM · $(uname -m)"
+
+# ── 1. Install APT Base Tools (Linux/WSL only) ───────────────
+install_apt_base() {
+  if [[ "$PLATFORM" == "macos" ]]; then
+    return 0
   fi
-  echo
+  sudo apt-get update -y
+  sudo apt-get install -y git zsh tmux curl wget build-essential gocryptfs
 }
 
-# ── 1. Install Homebrew ───────────────────────────────────────
+# ── 2. Install Homebrew ───────────────────────────────────────
 install_homebrew() {
   if command -v brew &>/dev/null; then
-    success "Homebrew already installed."
+    ui_success "Homebrew already installed"
     return 0
   fi
 
-  info "Installing Homebrew..."
+  ui_info "Installing Homebrew..."
   NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   # Activate Homebrew in current session
@@ -71,48 +67,35 @@ install_homebrew() {
     eval "$(/usr/local/bin/brew shellenv)"
   fi
 
-  success "Homebrew installed."
-}
-
-# ── 2. Install APT Base Tools (Linux/WSL only) ───────────────
-install_apt_base() {
-  if [[ "$PLATFORM" == "macos" ]]; then
-    return 0
-  fi
-
-  info "Installing base tools via APT..."
-  sudo apt update -y
-  sudo apt install -y git zsh tmux curl wget build-essential gocryptfs
-  success "APT base tools installed."
+  ui_success "Homebrew installed"
 }
 
 # ── 3. Brew Bundle ────────────────────────────────────────────
 install_brew_tools() {
   if ! command -v brew &>/dev/null; then
-    warn "Homebrew not found. Skipping brew bundle."
+    ui_warn "Homebrew not found — skipping brew bundle"
     return 0
   fi
-
-  info "Installing tools from Brewfile..."
   brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
-  success "Brew tools installed."
 }
 
 # ── 4. mise Install ──────────────────────────────────────────
 install_runtimes() {
   if ! command -v mise &>/dev/null; then
-    warn "mise not found. Skipping runtime installation."
+    ui_warn "mise not found — skipping runtime installation"
     return 0
   fi
-
-  info "Installing language runtimes via mise..."
   export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
   mise install --yes
-  success "Language runtimes installed."
 }
 
 # ── Install Flow ─────────────────────────────────────────────
-install_apt_base
+
+section "System Packages"
+
+if [[ "$PLATFORM" != "macos" ]]; then
+  step "APT base tools" install_apt_base
+fi
 install_homebrew
 
 # Ensure Homebrew is on PATH for brew bundle
@@ -122,27 +105,42 @@ elif [[ -x "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-install_brew_tools
-install_runtimes
-echo
+# Re-detect gum after brew bundle (it was just installed)
+step "Brew bundle" install_brew_tools
+if command -v gum &>/dev/null; then
+  HAS_GUM=1
+fi
 
-run_step "setup-symlinks.sh"   "Setting up dotfile symlinks"
-run_step "setup-fonts.sh"      "Checking/installing fonts"
-run_step "setup-shell.sh"      "Configuring shell (Zsh, Zinit)"
-run_step "setup-git-ssh.sh"    "Git identity and SSH setup"
-run_step "post-cleanup.sh"     "Post-install cleanup"
-run_step "post-validate.sh"    "Running post-install validation"
+step "Language runtimes (mise)" install_runtimes
+
+section "Configuration"
+
+step "Dotfile symlinks" bash "$DOTFILES_DIR/scripts/setup-symlinks.sh"
+step "Font setup" bash "$DOTFILES_DIR/scripts/setup-fonts.sh"
+
+section "Shell & Identity"
+
+# Interactive scripts — run directly, no spinner
+bash "$DOTFILES_DIR/scripts/setup-shell.sh"
+bash "$DOTFILES_DIR/scripts/setup-git-ssh.sh"
+
+section "Validation"
+
+if [[ -f "$DOTFILES_DIR/scripts/post-cleanup.sh" ]]; then
+  step "Post-install cleanup" bash "$DOTFILES_DIR/scripts/post-cleanup.sh"
+fi
+if [[ -f "$DOTFILES_DIR/scripts/post-validate.sh" ]]; then
+  bash "$DOTFILES_DIR/scripts/post-validate.sh"
+fi
 
 # ── Offer Shell Restart ───────────────────────────────────────
 echo
-read -p $'Install complete! Restart shell to apply changes? [Y/n]: ' restart
-restart=${restart:-Y}
-if [[ "$restart" =~ ^[Yy]$ ]]; then
+if ui_confirm "Install complete! Restart shell?"; then
   if command -v zsh >/dev/null 2>&1; then
     exec zsh
   else
     exec bash
   fi
 else
-  info "You can run 'source ~/.zshrc' manually to apply changes."
+  ui_info "Run 'source ~/.zshrc' to apply changes."
 fi
