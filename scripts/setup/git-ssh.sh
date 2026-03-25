@@ -18,7 +18,10 @@ if [[ -f "$GITCONFIG_LOCAL" ]] && grep -q "name =" "$GITCONFIG_LOCAL" && grep -q
   GIT_CONFIGURED=true
 fi
 
-mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
+SSH_KEYS=()
+while IFS= read -r key; do
+  SSH_KEYS+=("$key")
+done < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
 if [[ ${#SSH_KEYS[@]} -gt 0 ]]; then
   SSH_CONFIGURED=true
 fi
@@ -74,7 +77,10 @@ mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
 # Re-check in case user is reconfiguring
-mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
+SSH_KEYS=()
+while IFS= read -r key; do
+  SSH_KEYS+=("$key")
+done < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
 
 if [[ ${#SSH_KEYS[@]} -eq 0 ]]; then
   ui_warn "No SSH private keys found in ~/.ssh"

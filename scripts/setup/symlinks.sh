@@ -47,19 +47,20 @@ link_dotfile() {
 }
 
 # ── Symlink Targets ───────────────────────────────────────────
-declare -A SYMLINKS=(
-  ["~/.zshrc"]="~/.dotfiles/.zshrc"
-  ["~/.tmux.conf"]="~/.dotfiles/.tmux.conf"
-  ["~/.gitconfig"]="~/.dotfiles/.gitconfig"
-  ["~/.config/lsd/config.yaml"]="~/.dotfiles/.config/lsd/config.yaml"
-  ["~/.config/gh/config.yml"]="~/.dotfiles/.config/gh/config.yml"
-  ["~/.config/lazygit/config.yml"]="~/.dotfiles/.config/lazygit/config.yml"
-  ["~/.config/wezterm/wezterm.lua"]="~/.dotfiles/.config/wezterm/wezterm.lua"
+# Format: "target|source" — one pair per line
+SYMLINKS=(
+  "~/.zshrc|~/.dotfiles/.zshrc"
+  "~/.tmux.conf|~/.dotfiles/.tmux.conf"
+  "~/.gitconfig|~/.dotfiles/.gitconfig"
+  "~/.config/lsd/config.yaml|~/.dotfiles/.config/lsd/config.yaml"
+  "~/.config/gh/config.yml|~/.dotfiles/.config/gh/config.yml"
+  "~/.config/lazygit/config.yml|~/.dotfiles/.config/lazygit/config.yml"
+  "~/.config/wezterm/wezterm.lua|~/.dotfiles/.config/wezterm/wezterm.lua"
 )
 
 # ── Main ──────────────────────────────────────────────────────
-for target in "${!SYMLINKS[@]}"; do
-  link_dotfile "$target" "${SYMLINKS[$target]}"
+for entry in "${SYMLINKS[@]}"; do
+  link_dotfile "${entry%%|*}" "${entry##*|}"
 done
 
 echo

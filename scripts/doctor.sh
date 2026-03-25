@@ -25,8 +25,8 @@ get_version() {
     export TERM=dumb
     case "$cmd" in
       tmux)     tmux -V 2>/dev/null ;;
-      lazygit)  lazygit --version 2>/dev/null | grep -oP 'version=\K[^,]+' | head -1 ;;
-      btop)     btop --version 2>/dev/null | grep -oP 'btop version: \K.*' ;;
+      lazygit)  lazygit --version 2>/dev/null | sed -n 's/.*version=\([^,]*\).*/\1/p' | head -1 ;;
+      btop)     btop --version 2>/dev/null | sed -n 's/.*btop version: //p' ;;
       *)        "$cmd" --version 2>/dev/null | head -n 1 ;;
     esac
   ) | strip_ansi
@@ -92,7 +92,7 @@ SYMLINKS_SCRIPT="$DOTFILES_DIR/scripts/setup/symlinks.sh"
 if [[ -f "$SYMLINKS_SCRIPT" ]]; then
   while IFS= read -r target; do
     check_symlink "${target/#\~/$HOME}"
-  done < <(grep -oP '^\s*\["\K[^"]+' "$SYMLINKS_SCRIPT")
+  done < <(sed -n 's/^ *"\([^|]*\)|.*/\1/p' "$SYMLINKS_SCRIPT")
 else
   ui_warn "symlinks.sh not found — cannot validate"
 fi
@@ -128,7 +128,7 @@ if command -v brew >/dev/null 2>&1; then
     else
       ui_warn "Missing Brewfile packages:"
       brew bundle check --verbose --file="$BREWFILE" 2>/dev/null \
-        | grep -oP '→ Formula \K\S+' | while read -r pkg; do
+        | awk '/Formula/ { print $NF }' | while read -r pkg; do
           echo "    $pkg"
         done
       ui_info "Run 'dotfiles update' to install missing packages"

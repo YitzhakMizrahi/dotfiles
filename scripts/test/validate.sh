@@ -54,7 +54,7 @@ SYMLINKS_SCRIPT="$HOME/.dotfiles/scripts/setup/symlinks.sh"
 if [[ -f "$SYMLINKS_SCRIPT" ]]; then
   while IFS= read -r target; do
     check_symlink "${target/#\~/$HOME}"
-  done < <(grep -oP '^\s*\["\K[^"]+' "$SYMLINKS_SCRIPT")
+  done < <(sed -n 's/^ *"\([^|]*\)|.*/\1/p' "$SYMLINKS_SCRIPT")
 else
   printf "  FAIL  symlinks.sh not found\n"
   FAIL=$((FAIL + 1))
