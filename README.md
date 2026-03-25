@@ -8,8 +8,7 @@ Personal dotfiles — modular, declarative, and tested. Designed for Ubuntu/WSL2
 
 ```bash
 git clone https://github.com/YitzhakMizrahi/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-bash scripts/install.sh
+dotfiles install
 ```
 
 > Don't run as root. The installer will guide you through setup interactively.

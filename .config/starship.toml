@@ -263,4 +263,4 @@ disabled = true
 [conda]
 style = 'fg:green'
 format = '[$symbol$environment ]($style)'
-disabled = false
+disabled = true

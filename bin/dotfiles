@@ -56,6 +56,9 @@ case "${1:-}" in
     echo
     ui_success "Dotfiles updated"
     ;;
+  install)
+    bash "$DOTFILES_DIR/scripts/install.sh"
+    ;;
   doctor)
     bash "$DOTFILES_DIR/scripts/doctor.sh"
     ;;
@@ -63,12 +66,13 @@ case "${1:-}" in
     cd "$DOTFILES_DIR" && ${EDITOR:-vim} .
     ;;
   *)
-    echo "Usage: dotfiles {test|update|doctor|edit}"
+    echo "Usage: dotfiles {install|update|doctor|test|edit}"
     echo
+    echo "  install        Run full installer (packages, runtimes, shell, git)"
+    echo "  update         Pull latest, upgrade tools and runtimes, re-link"
+    echo "  doctor         Run post-install validation checks"
     echo "  test           Build and run Docker CI test (automated)"
     echo "  test -i        Build and launch interactive container (see Gum UI)"
-    echo "  update         Pull latest, brew bundle, mise install, re-link"
-    echo "  doctor         Run post-install validation checks"
     echo "  edit           Open dotfiles directory in \$EDITOR"
     exit 1
     ;;

@@ -20,9 +20,6 @@
   pl = pull
   ps = push
 
-[safe]
-  directory = /home
-
 [column]
   ui = auto
 

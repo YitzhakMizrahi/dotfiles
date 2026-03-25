@@ -14,10 +14,6 @@
 [[ -n "${__UI_SH_LOADED:-}" ]] && return 0
 __UI_SH_LOADED=1
 
-# Source logging.sh for fallback functions
-_UI_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_UI_LIB_DIR/logging.sh"
-
 # ── Gruvbox ANSI Colors ──────────────────────────────────────
 # 256-color approximations of the Gruvbox palette
 _C_RESET="\033[0m"

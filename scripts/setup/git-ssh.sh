@@ -46,7 +46,11 @@ if [[ ! -f "$GITCONFIG_LOCAL" ]]; then
   ui_success "Created $GITCONFIG_LOCAL"
 elif [[ "$GIT_CONFIGURED" == true ]]; then
   # User chose to reconfigure — clear the user section
-  sed -i '/\[user\]/,/^\s*\[.*\]/d' "$GITCONFIG_LOCAL"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' '/\[user\]/,/^\s*\[.*\]/d' "$GITCONFIG_LOCAL"
+  else
+    sed -i '/\[user\]/,/^\s*\[.*\]/d' "$GITCONFIG_LOCAL"
+  fi
 fi
 
 # ── Prompt for Git identity ──────────────────────────────────

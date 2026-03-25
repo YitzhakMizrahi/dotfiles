@@ -107,6 +107,7 @@ fi
 # Brew bundle — show each package as it installs
 _log_header "Brew bundle"
 ui_info "Installing Homebrew packages..."
+set -o pipefail
 brew bundle --file="$DOTFILES_DIR/Brewfile" 2>&1 | while IFS= read -r line; do
   echo "$line" >> "$DOTFILES_LOG"
   if [[ "$line" == Installing* ]]; then
@@ -115,6 +116,7 @@ brew bundle --file="$DOTFILES_DIR/Brewfile" 2>&1 | while IFS= read -r line; do
     echo -e "  ${_C_GRAY}· ${line}${_C_RESET}"
   fi
 done
+set +o pipefail
 ui_success "Brew bundle complete"
 
 # mise — run directly since it needs shell env

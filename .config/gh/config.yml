@@ -1,5 +1,5 @@
 git_protocol: ssh # Or 'https' if you prefer https cloning
-editor: code # Change to 'vim', 'nano', 'nvim', etc. if you prefer
+editor: "" # Falls back to $EDITOR or $VISUAL
 prompt: enabled
 aliases:
     co: pr checkout

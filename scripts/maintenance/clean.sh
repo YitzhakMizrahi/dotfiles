@@ -10,6 +10,12 @@ set -e
 
 source "$(dirname "$0")/../lib/ui.sh"
 
+# ── Platform Check ──────────────────────────────────────────────
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  ui_warn "This cleanup script is for Linux/WSL only."
+  exit 0
+fi
+
 # ── Helpers ───────────────────────────────────────────────────
 get_dir_size() {
   local dir="$1"
