@@ -11,6 +11,12 @@ set -e
 
 source "$(dirname "$0")/../lib/ui.sh"
 
+# ── Skip in CI ──────────────────────────────────────────────
+if [[ "${DOTFILES_CI:-0}" -eq 1 ]]; then
+  ui_info "CI mode — skipping font setup"
+  exit 0
+fi
+
 # ── WSL Detection ────────────────────────────────────────────
 if [[ "${DOTFILES_FORCE_FONTS:-0}" -ne 1 ]] && grep -qiE "(microsoft|wsl)" /proc/version 2>/dev/null; then
   ui_info "WSL detected — Nerd Fonts should be managed via your Windows terminal."

@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  linux:
+    name: Linux (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: docker build --network host -f Dockerfile.test -t dotfiles-test .
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    env:
+      DOTFILES_CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: .dotfiles
+
+      - name: Move to home directory
+        run: mv "$GITHUB_WORKSPACE/.dotfiles" "$HOME/.dotfiles"
+
+      - name: Install
+        run: bash ~/.dotfiles/scripts/install.sh
+
+      - name: Validate
+        run: bash ~/.dotfiles/scripts/test/validate.sh
