@@ -46,12 +46,8 @@ path_append() {
 }
 
 # Personal/user binaries
-path_prepend "$HOME/bin"
+path_prepend "$HOME/.dotfiles/bin"
 path_prepend "$HOME/.local/bin"
-path_prepend "$HOME/.cargo/bin"
-
-# Optional tool paths
-path_prepend "$HOME/tools/godot"
 path_append "/snap/bin"
 
 export PATH
@@ -82,40 +78,18 @@ elif [[ -x "/opt/homebrew/bin/brew" ]]; then
 fi
 _zshrc_timing_log "homebrew"
 
-# 🟨 ── Go (goenv) ────────────────────────────────────────────────────
-export GOENV_ROOT="$HOME/.goenv"
-path_prepend "$GOENV_ROOT/bin"
-if command -v goenv >/dev/null 2>&1; then
-  eval "$(goenv init -)"
+# 🔧 ── mise (language runtimes) ───────────────────────────────────────
+if command -v mise >/dev/null 2>&1; then
+  export MISE_GLOBAL_CONFIG_FILE="$HOME/.dotfiles/.mise.toml"
+  eval "$(mise activate zsh)"
 fi
-_zshrc_timing_log "goenv"
-
-# 🐍 ── Python (pyenv) ────────────────────────────────────────────────
-export PYENV_ROOT="$HOME/.pyenv"
-path_prepend "$PYENV_ROOT/bin"
-if command -v pyenv >/dev/null 2>&1; then
-  eval "$(pyenv init - zsh)"
-  if pyenv commands | grep -qx 'virtualenv-init'; then
-    eval "$(pyenv virtualenv-init -)"
-  fi
-fi
-_zshrc_timing_log "pyenv"
-
-# 🟢 ── Lazy-load NVM ─────────────────────────────────────────────────
-export NVM_DIR="$HOME/.nvm"
-if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  nvm()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; nvm "$@"; }
-  node() { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; node "$@"; }
-  npm()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; npm "$@"; }
-  npx()  { unset -f nvm node npm npx; source "$NVM_DIR/nvm.sh"; npx "$@"; }
-fi
-_zshrc_timing_log "nvm (lazy)"
+_zshrc_timing_log "mise"
 
 # 🔐 ── SSH Agent ─────────────────────────────────────────────────────
 if ! pgrep -u "$USER" ssh-agent >/dev/null; then
   eval "$(ssh-agent -s)" >/dev/null
 fi
-alias addkey='ssh-add ~/.ssh/id_ed25519'
+alias addkey='ssh-add "$(find ~/.ssh -maxdepth 1 -name "id_ed25519*" ! -name "*.pub" | head -1)"'
 _zshrc_timing_log "ssh-agent"
 
 # 📁 ── Aliases: File Navigation ──────────────────────────────────────
@@ -170,7 +144,7 @@ _zshrc_timing_log "functions"
 
 # 💬 ── Prompt (starship) ─────────────────────────────────────────────
 if command -v starship >/dev/null 2>&1; then
-  export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+  export STARSHIP_CONFIG="$HOME/.dotfiles/.config/starship.toml"
   eval "$(starship init zsh)"
 else
   PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f %# '
@@ -214,6 +188,3 @@ if [[ $SOURCE_TIMING == "true" ]]; then
   echo "🕒 .zshrc fully loaded in ${ZSHRC_DURATION_MS} ms"
 fi
 
-if [[ -s "$NVM_DIR/bash_completion" ]]; then
-  . "$NVM_DIR/bash_completion"
-fi
