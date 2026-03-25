@@ -63,11 +63,14 @@ The installer is a thin orchestrator that runs these steps in order:
 ## Testing
 
 ```bash
-# Docker (full isolated test)
-docker build --network host -f Dockerfile.test -t dotfiles-test .
+# Full isolated test via Docker
+dotfiles test
 
-# LXC (local sandbox)
-bin/lxc-dev test
+# Check current machine state
+dotfiles doctor
+
+# Pull latest + update tools + re-link
+dotfiles update
 ```
 
 ---
