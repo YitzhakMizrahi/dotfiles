@@ -123,12 +123,31 @@ else
   fi
 fi
 
-# ── Final Checklist ───────────────────────────────────────────
-subsection "Next Steps"
-echo
-echo "    gh auth login                          Authenticate GitHub CLI"
-echo "    exec zsh                               Reload shell"
-echo "    cat ~/.gitconfig.local                 Review Git identity"
+if command -v gh >/dev/null 2>&1 && gh auth status &>/dev/null; then
+  ui_success "GitHub CLI authenticated"
+else
+  ui_warn "GitHub CLI not authenticated"
+fi
+
+# ── Next Steps (only show what's pending) ─────────────────────
+NEXT_STEPS=()
+if command -v gh >/dev/null 2>&1 && ! gh auth status &>/dev/null; then
+  NEXT_STEPS+=("    gh auth login                          Authenticate GitHub CLI")
+fi
+if [[ "$SHELL" != *zsh ]]; then
+  NEXT_STEPS+=("    chsh -s \$(which zsh)                   Set Zsh as default shell")
+fi
+if [[ ! -f "$HOME/.gitconfig.local" ]] || ! grep -q "name =" "$HOME/.gitconfig.local" 2>/dev/null; then
+  NEXT_STEPS+=("    dotfiles install                        Set up Git identity")
+fi
+
+if [[ ${#NEXT_STEPS[@]} -gt 0 ]]; then
+  subsection "Next Steps"
+  echo
+  for step in "${NEXT_STEPS[@]}"; do
+    echo "$step"
+  done
+fi
 
 echo
 ui_success "Post-install validation complete"
