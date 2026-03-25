@@ -1,27 +1,42 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Nerd Fonts symbols with colors
-update_symbol="\e[34m\e[0m"  # Blue update symbol
-warning_symbol="\e[33m\e[0m"  # Yellow warning symbol
-check_symbol="\e[32m\e[0m"  # Green check symbol
-terminal_symbol="\e[36m\e[0m"  # Cyan terminal symbol
+# ╭────────────────────────────────────────────────────────────╮
+# │                   System Update Utility                    │
+# ╰────────────────────────────────────────────────────────────╯
+# Updates APT packages. Linux/WSL only.
 
-echo -e "${warning_symbol} This will update your system. Are you sure you want to proceed? (y/n) "
-read -n 1 -r
-echo    # (optional) move to a new line
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-    echo -e "${warning_symbol} Update cancelled by the user."
-    exit 1
+set -e
+
+source "$(dirname "$0")/lib/logging.sh"
+
+# ── Platform Check ────────────────────────────────────────────
+if ! command -v apt-get &>/dev/null; then
+  fail "APT not found. This script is for Debian/Ubuntu-based systems."
 fi
 
-echo -e "${update_symbol} Updating system..."
-echo -e "${terminal_symbol} Running: sudo apt-get update"
+# ── Confirmation ──────────────────────────────────────────────
+echo
+warn "This will update your system packages."
+read -p "Proceed? [Y/n]: " -n 1 -r
+echo
+
+if [[ ! $REPLY =~ ^[Yy]?$ ]]; then
+  info "Update cancelled."
+  exit 0
+fi
+
+# ── Update ────────────────────────────────────────────────────
+info "Updating package lists..."
 sudo apt-get update
-echo -e "${terminal_symbol} Running: sudo apt-get upgrade -y"
+
+info "Upgrading packages..."
 sudo apt-get upgrade -y
-echo -e "${terminal_symbol} Running: sudo apt-get dist-upgrade -y"
+
+info "Running dist-upgrade..."
 sudo apt-get dist-upgrade -y
-echo -e "${terminal_symbol} Running: sudo apt-get autoremove -y"
+
+info "Removing unused packages..."
 sudo apt-get autoremove -y
-echo -e "${check_symbol} System updated!"
+
+echo
+success "System updated."
