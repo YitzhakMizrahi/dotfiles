@@ -25,6 +25,7 @@ brew "git-delta"           # Git diff pager
 brew "duf"                 # df replacement (disk usage)
 
 # ── Dev Tools ─────────────────────────────────────────────────
+brew "gum"                 # Elegant shell script UI (Charmbracelet)
 brew "gh"                  # GitHub CLI
 brew "lazygit"             # Git TUI
 brew "yazi"                # Terminal file manager
