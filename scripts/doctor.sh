@@ -13,8 +13,11 @@ source "$(dirname "$0")/lib/tools.sh"
 
 # ── Tool Version Checks ──────────────────────────────────────
 # Strip ANSI escape sequences and terminal responses from version output
+# Uses a literal ESC character for BSD sed compatibility (macOS)
 strip_ansi() {
-  sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\x1b[P>][^\\]*\\\\//g; s/\x1b[^[]*//g' | tr -d '\r'
+  local esc
+  esc=$(printf '\033')
+  sed "s/${esc}\[[0-9;]*[a-zA-Z]//g; s/${esc}[P>][^\\\\]*\\\\\\\\//g; s/${esc}[^[]*//g" | tr -d '\r'
 }
 
 # Get version string for a tool (handles per-tool quirks)

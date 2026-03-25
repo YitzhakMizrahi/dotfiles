@@ -1,11 +1,13 @@
 # ⏱️ ── Optional Timing Flag ───────────────────────────────────────────
 if [[ $SOURCE_TIMING == "true" ]]; then
-  __zshrc_timer_start=$(date +%s%N)
+  zmodload zsh/datetime
+  __zshrc_timer_origin=$EPOCHREALTIME
+  __zshrc_timer_start=$EPOCHREALTIME
   function _zshrc_timing_log() {
     local label=$1
-    local now=$(date +%s%N)
-    local elapsed=$(( (now - __zshrc_timer_start) / 1000000 ))
-    echo "⏱️  ${label} loaded at ${elapsed} ms"
+    local now=$EPOCHREALTIME
+    local elapsed=$(( (now - __zshrc_timer_start) * 1000 ))
+    printf "⏱️  %-25s %6.1f ms\n" "$label" "$elapsed"
     __zshrc_timer_start=$now
   }
 else
@@ -178,8 +180,7 @@ _zshrc_timing_log "zoxide"
 
 # 🕒 ── Final Timing Output ───────────────────────────────────────────
 if [[ $SOURCE_TIMING == "true" ]]; then
-  ZSHRC_END_TIME=$(date +%s%N)
-  ZSHRC_DURATION_MS=$(( (ZSHRC_END_TIME - __zshrc_timer_start) / 1000000 ))
-  echo "🕒 .zshrc fully loaded in ${ZSHRC_DURATION_MS} ms"
+  local __zshrc_total=$(( (EPOCHREALTIME - __zshrc_timer_origin) * 1000 ))
+  printf "🕒 .zshrc fully loaded in %.0f ms\n" "$__zshrc_total"
 fi
 

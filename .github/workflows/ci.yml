@@ -11,7 +11,7 @@ jobs:
     name: Linux (Docker)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build and test
         run: docker build --network host -f Dockerfile.test -t dotfiles-test .
 
@@ -21,7 +21,7 @@ jobs:
     env:
       DOTFILES_CI: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: .dotfiles
 
