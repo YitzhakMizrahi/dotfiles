@@ -1,0 +1,14 @@
+# ╭────────────────────────────────────────────────────────────╮
+# │                  mise Configuration                        │
+# ╰────────────────────────────────────────────────────────────╯
+# Usage: mise install
+# Manages language runtimes. Replaces pyenv, nvm, goenv.
+
+[tools]
+python = "latest"
+node = "lts"
+go = "latest"
+rust = "latest"
+
+[settings]
+experimental = true
