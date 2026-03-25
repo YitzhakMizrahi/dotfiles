@@ -5,7 +5,7 @@
 # Manages language runtimes. Replaces pyenv, nvm, goenv.
 
 [tools]
-python = "latest"
+python = "3.13"
 node = "lts"
 go = "latest"
 rust = "latest"

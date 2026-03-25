@@ -29,11 +29,8 @@ jobs:
         run: |
           mv "$GITHUB_WORKSPACE/.dotfiles" "$HOME/.dotfiles"
           rm -f "$HOME/.gitconfig"
-          echo "SDKROOT=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
 
       - name: Install
-        env:
-          MISE_VERBOSE: "1"
         run: bash ~/.dotfiles/scripts/install.sh
 
       - name: Validate
