@@ -21,6 +21,7 @@ fi
 # ── Ensure Executables ────────────────────────────────────────
 DOTFILES_DIR="$HOME/.dotfiles"
 chmod +x "$DOTFILES_DIR/scripts/"*.sh || true
+chmod +x "$DOTFILES_DIR/bin/"* || true
 
 # ── Modular Scripts ───────────────────────────────────────────
 run_step() {

@@ -71,6 +71,9 @@ declare -A SYMLINKS=(
   ["~/.config/lsd/config.yaml"]="~/.dotfiles/.config/lsd/config.yaml"
   ["~/.config/gh/config.yml"]="~/.dotfiles/.config/gh/config.yml"
   ["~/.config/lazygit/config.yml"]="~/.dotfiles/.config/lazygit/config.yml"
+  ["~/bin/vault-open"]="~/.dotfiles/bin/vault-open"
+  ["~/bin/vault-close"]="~/.dotfiles/bin/vault-close"
+  ["~/bin/pkgx"]="~/.dotfiles/bin/pkgx"
 )
 
 # ── Main ──────────────────────────────────────────────────────
