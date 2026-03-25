@@ -25,12 +25,30 @@ case "${1:-}" in
 
     if command -v brew &>/dev/null; then
       step "Homebrew update" brew update
-      step "Brew bundle" brew bundle --file="$DOTFILES_DIR/Brewfile"
+
+      if [[ -n "$(brew outdated --quiet 2>/dev/null)" ]]; then
+        step "Brew upgrade" brew upgrade
+      else
+        ui_success "All packages up to date"
+      fi
+
+      if ! brew bundle check --file="$DOTFILES_DIR/Brewfile" &>/dev/null; then
+        step "Install missing packages" brew bundle --file="$DOTFILES_DIR/Brewfile"
+      else
+        ui_success "All Brewfile packages installed"
+      fi
+
       step "Brew cleanup" brew cleanup -s
     fi
 
     if command -v mise &>/dev/null; then
-      step "Runtime update (mise)" mise install --yes
+      step "Install runtimes (mise)" mise install --yes
+
+      if [[ -n "$(mise outdated 2>/dev/null)" ]]; then
+        step "Upgrade runtimes (mise)" mise upgrade --yes
+      else
+        ui_success "All runtimes up to date"
+      fi
     fi
 
     step "Re-link symlinks" bash "$DOTFILES_DIR/scripts/setup/symlinks.sh"
