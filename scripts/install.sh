@@ -15,7 +15,7 @@ if [[ "$EUID" -eq 0 ]]; then
 fi
 
 DOTFILES_DIR="$HOME/.dotfiles"
-chmod +x "$DOTFILES_DIR/scripts/"*.sh 2>/dev/null || true
+chmod +x "$DOTFILES_DIR/scripts/"*.sh "$DOTFILES_DIR/scripts/"**/*.sh 2>/dev/null || true
 chmod +x "$DOTFILES_DIR/bin/"* 2>/dev/null || true
 
 # ── Platform Detection ────────────────────────────────────────
@@ -35,26 +35,45 @@ detect_platform() {
 
 PLATFORM=$(detect_platform)
 
+# ── Welcome ──────────────────────────────────────────────────
 banner "Dotfiles Installer" "$PLATFORM · $(uname -m)"
 
-# ── 1. Install APT Base Tools (Linux/WSL only) ───────────────
-install_apt_base() {
-  if [[ "$PLATFORM" == "macos" ]]; then
-    return 0
-  fi
-  sudo apt-get update -y
-  sudo apt-get install -y git zsh tmux curl wget build-essential gocryptfs
-}
+echo "  This will install and configure:"
+echo "    • System packages (APT + Homebrew)"
+echo "    • CLI tools (bat, fzf, ripgrep, lsd, etc.)"
+echo "    • Language runtimes (Python, Node, Go, Rust)"
+echo "    • Shell config (Zsh + Zinit + Starship)"
+echo "    • Git identity & SSH keys"
+echo
 
-# ── 2. Install Homebrew ───────────────────────────────────────
+if ! ui_confirm "Proceed with installation?"; then
+  ui_info "Installation cancelled."
+  exit 0
+fi
+
+# Initialize install log
+ui_log_init
+ui_info "Logging to $DOTFILES_LOG"
+echo
+
+_timer_start
+INSTALL_START=$_TIMER_START
+
+# ── Install Homebrew ─────────────────────────────────────────
 install_homebrew() {
   if command -v brew &>/dev/null; then
     ui_success "Homebrew already installed"
     return 0
   fi
 
-  ui_info "Installing Homebrew..."
-  NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  _log_header "Homebrew install"
+  if [[ "$HAS_GUM" -eq 1 ]]; then
+    gum spin --spinner dot --title "Installing Homebrew..." -- \
+      bash -c 'NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >> "'"$DOTFILES_LOG"'" 2>&1'
+  else
+    ui_info "Installing Homebrew..."
+    NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >> "$DOTFILES_LOG" 2>&1
+  fi
 
   # Activate Homebrew in current session
   if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
@@ -70,70 +89,95 @@ install_homebrew() {
   ui_success "Homebrew installed"
 }
 
-# ── 3. Brew Bundle ────────────────────────────────────────────
-install_brew_tools() {
-  if ! command -v brew &>/dev/null; then
-    ui_warn "Homebrew not found — skipping brew bundle"
-    return 0
-  fi
-  brew bundle --file="$DOTFILES_DIR/Brewfile"
-}
-
-# ── 4. mise Install ──────────────────────────────────────────
-install_runtimes() {
-  if ! command -v mise &>/dev/null; then
-    ui_warn "mise not found — skipping runtime installation"
-    return 0
-  fi
-  export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
-  mise install --yes
-}
-
 # ── Install Flow ─────────────────────────────────────────────
 
-section "System Packages"
+timed_section "System Packages"
 
 if [[ "$PLATFORM" != "macos" ]]; then
-  step "APT base tools" install_apt_base
+  step "APT update" sudo apt-get update -y
+  step "APT base tools" sudo apt-get install -y git zsh tmux curl wget unzip build-essential gocryptfs
 fi
 install_homebrew
 
-# Ensure Homebrew is on PATH for brew bundle
+# Ensure Homebrew is on PATH
 if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 elif [[ -x "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# Re-detect gum after brew bundle (it was just installed)
-step "Brew bundle" install_brew_tools
-if [[ "$DOTFILES_CI" -eq 0 ]] && command -v gum &>/dev/null; then
-  HAS_GUM=1
+# Install gum first for polished UI in remaining steps
+if [[ "$DOTFILES_CI" -eq 0 ]] && command -v brew &>/dev/null && ! command -v gum &>/dev/null; then
+  ui_info "Installing gum for UI..."
+  brew install gum >> "$DOTFILES_LOG" 2>&1
+  if command -v gum &>/dev/null; then
+    HAS_GUM=1
+    ui_success "gum ready"
+  fi
 fi
 
-step "Language runtimes (mise)" install_runtimes
+# Brew bundle — show each package as it installs
+_log_header "Brew bundle"
+ui_info "Installing Homebrew packages..."
+brew bundle --file="$DOTFILES_DIR/Brewfile" 2>&1 | while IFS= read -r line; do
+  echo "$line" >> "$DOTFILES_LOG"
+  if [[ "$line" == Installing* ]]; then
+    echo -e "  ${_C_GREEN}✓${_C_RESET} $line"
+  elif [[ "$line" == *"already installed"* || "$line" == Using* ]]; then
+    echo -e "  ${_C_GRAY}· ${line}${_C_RESET}"
+  fi
+done
+ui_success "Brew bundle complete"
 
-section "Configuration"
-
-step "Dotfile symlinks" bash "$DOTFILES_DIR/scripts/setup-symlinks.sh"
-step "Font setup" bash "$DOTFILES_DIR/scripts/setup-fonts.sh"
-
-section "Shell & Identity"
-
-# Interactive scripts — run directly, no spinner
-bash "$DOTFILES_DIR/scripts/setup-shell.sh"
-bash "$DOTFILES_DIR/scripts/setup-git-ssh.sh"
-
-section "Validation"
-
-if [[ -f "$DOTFILES_DIR/scripts/post-cleanup.sh" ]]; then
-  step "Post-install cleanup" bash "$DOTFILES_DIR/scripts/post-cleanup.sh"
+# mise — run directly since it needs shell env
+if command -v mise &>/dev/null; then
+  export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
+  step "Language runtimes (mise)" mise install --yes || true
+else
+  ui_warn "mise not found — skipping runtime installation"
 fi
-if [[ -f "$DOTFILES_DIR/scripts/post-validate.sh" ]]; then
-  bash "$DOTFILES_DIR/scripts/post-validate.sh"
+
+timed_section "Configuration"
+
+step "Dotfile symlinks" bash "$DOTFILES_DIR/scripts/setup/symlinks.sh"
+
+# Zinit install (automated — no user interaction)
+ZINIT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+if [[ -d "$ZINIT_DIR" ]]; then
+  ui_success "Zinit already installed"
+else
+  step "Zinit plugin manager" git clone --depth 1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_DIR"
 fi
 
-# ── Legacy Runtime Cleanup ─────────────────────────────────────
+# Pre-download Zinit plugins (needs .zshrc symlink + TTY, no gum spin)
+if command -v zsh >/dev/null 2>&1 && [[ -d "$ZINIT_DIR" ]]; then
+  ui_info "Pre-downloading Zinit plugins..."
+  zsh -ic "exit" || true
+  ui_success "Zinit plugins ready"
+fi
+
+timed_section "Validation"
+
+if [[ -f "$DOTFILES_DIR/scripts/doctor.sh" ]]; then
+  bash "$DOTFILES_DIR/scripts/doctor.sh"
+fi
+
+timed_section_end
+
+# ── Personalization (interactive — not timed) ──────────────────
+section "Personalization"
+echo
+
+# Default shell
+bash "$DOTFILES_DIR/scripts/setup/shell.sh"
+
+# Fonts
+bash "$DOTFILES_DIR/scripts/setup/fonts.sh" || true
+
+# Git identity & SSH keys
+bash "$DOTFILES_DIR/scripts/setup/git-ssh.sh"
+
+# Legacy runtime cleanup
 LEGACY_DIRS=("$HOME/.pyenv" "$HOME/.nvm" "$HOME/.goenv")
 FOUND_LEGACY=()
 for dir in "${LEGACY_DIRS[@]}"; do
@@ -158,9 +202,12 @@ if [[ ${#FOUND_LEGACY[@]} -gt 0 ]] && command -v mise &>/dev/null; then
   fi
 fi
 
-# ── Offer Shell Restart ───────────────────────────────────────
+# ── Done ──────────────────────────────────────────────────────
+_TIMER_START=$INSTALL_START
 echo
-if ui_confirm "Install complete! Restart shell?"; then
+ui_success "Installation complete in $(_timer_elapsed)"
+echo
+if ui_confirm "Restart shell?"; then
   if command -v zsh >/dev/null 2>&1; then
     exec zsh
   else

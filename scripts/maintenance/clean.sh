@@ -8,7 +8,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/../lib/ui.sh"
 
 # ── Helpers ───────────────────────────────────────────────────
 get_dir_size() {

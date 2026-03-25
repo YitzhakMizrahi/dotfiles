@@ -7,7 +7,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/../lib/ui.sh"
 
 resolve_path() {
   echo "${1/#\~/$HOME}"

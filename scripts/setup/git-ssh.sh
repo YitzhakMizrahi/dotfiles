@@ -7,22 +7,46 @@
 
 set -e
 
-source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/../lib/ui.sh"
+
+# ── Check if already fully configured ────────────────────────
+GITCONFIG_LOCAL="$HOME/.gitconfig.local"
+GIT_CONFIGURED=false
+SSH_CONFIGURED=false
+
+if [[ -f "$GITCONFIG_LOCAL" ]] && grep -q "name =" "$GITCONFIG_LOCAL" && grep -q "email =" "$GITCONFIG_LOCAL"; then
+  GIT_CONFIGURED=true
+fi
+
+mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
+if [[ ${#SSH_KEYS[@]} -gt 0 ]]; then
+  SSH_CONFIGURED=true
+fi
+
+# If both are configured, show status and offer to reconfigure
+if [[ "$GIT_CONFIGURED" == true && "$SSH_CONFIGURED" == true ]]; then
+  ui_success "Git identity already configured:"
+  grep -E "name =|email =" "$GITCONFIG_LOCAL" 2>/dev/null | sed 's/^/    /'
+  echo
+  ui_success "SSH key(s) found:"
+  for key in "${SSH_KEYS[@]}"; do
+    echo "    $(basename "$key")"
+  done
+  echo
+  if ! ui_confirm "Reconfigure Git/SSH?"; then
+    ui_info "Kept existing configuration."
+    exit 0
+  fi
+fi
 
 # ── Ensure ~/.gitconfig.local exists ─────────────────────────
-GITCONFIG_LOCAL="$HOME/.gitconfig.local"
 if [[ ! -f "$GITCONFIG_LOCAL" ]]; then
   ui_info "Creating $GITCONFIG_LOCAL for user config..."
   touch "$GITCONFIG_LOCAL"
   ui_success "Created $GITCONFIG_LOCAL"
-else
-  ui_info "$GITCONFIG_LOCAL already exists"
-  echo "  Current Git identity:"
-  grep -E "name =|email =" "$GITCONFIG_LOCAL" 2>/dev/null | sed 's/^/    /' || echo "    (none found)"
-  echo
-  if ui_confirm "Update Git identity?"; then
-    sed -i '/\[user\]/,/^\s*\[.*\]/d' "$GITCONFIG_LOCAL"
-  fi
+elif [[ "$GIT_CONFIGURED" == true ]]; then
+  # User chose to reconfigure — clear the user section
+  sed -i '/\[user\]/,/^\s*\[.*\]/d' "$GITCONFIG_LOCAL"
 fi
 
 # ── Prompt for Git identity ──────────────────────────────────
@@ -45,6 +69,7 @@ ui_success "Git identity saved to $GITCONFIG_LOCAL"
 mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
+# Re-check in case user is reconfiguring
 mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
 
 if [[ ${#SSH_KEYS[@]} -eq 0 ]]; then

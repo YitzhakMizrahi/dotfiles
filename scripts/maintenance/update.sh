@@ -7,7 +7,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/../lib/ui.sh"
 
 # ── Platform Check ────────────────────────────────────────────
 if ! command -v apt-get &>/dev/null; then

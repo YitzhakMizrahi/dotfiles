@@ -1,12 +1,15 @@
 # ╭────────────────────────────────────────────────────────────╮
 # │              Dotfiles Install Test                         │
 # ╰────────────────────────────────────────────────────────────╯
-# Usage: docker build -f Dockerfile.test -t dotfiles-test .
 #
-# Simulates a fresh Ubuntu machine, runs the full install,
-# then validates everything is set up correctly.
+# CI mode (automated):
+#   docker build --network host -f Dockerfile.test -t dotfiles-test .
+#
+# Interactive mode (see Gum UI, prompts, etc.):
+#   docker build --network host -f Dockerfile.test --target ready -t dotfiles-ready .
+#   docker run -it --network host dotfiles-ready bash scripts/install.sh
 
-FROM ubuntu:22.04
+FROM ubuntu:22.04 AS base
 
 # Avoid interactive prompts during apt installs
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,9 +26,10 @@ RUN apt-get update && apt-get install -y \
 
 ENV LANG=en_US.UTF-8
 
-# Create non-root user (install.sh refuses to run as root)
+# Create non-root user with password (mirrors a real machine)
 RUN useradd -m -s /bin/bash devuser \
-    && echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    && echo "devuser:devuser" | chpasswd \
+    && usermod -aG sudo devuser
 
 USER devuser
 WORKDIR /home/devuser
@@ -33,10 +37,16 @@ WORKDIR /home/devuser
 # Copy dotfiles into the container
 COPY --chown=devuser:devuser . /home/devuser/.dotfiles
 
-# Run the installer in CI mode (skips interactive prompts)
+# ── Interactive target ────────────────────────────────────────
+# Stops here — shell in and run install.sh yourself to see full UI
+FROM base AS ready
+CMD ["bash"]
+
+# ── CI target (default) ──────────────────────────────────────
+FROM base AS ci
 ENV DOTFILES_CI=1
 RUN cd /home/devuser/.dotfiles \
     && bash scripts/install.sh
 
 # Run validation tests
-RUN bash /home/devuser/.dotfiles/scripts/test-validate.sh
+RUN bash /home/devuser/.dotfiles/scripts/test/validate.sh

@@ -8,7 +8,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/ui.sh"
+source "$(dirname "$0")/../lib/ui.sh"
 
 # ── Size helpers ──────────────────────────────────────────────
 get_bytes() {
@@ -44,4 +44,9 @@ if command -v apt-get &>/dev/null; then
 fi
 
 echo
-ui_success "Post-install cleanup complete"
+if [[ "$TOTAL_SAVED" -gt 0 ]]; then
+  local_saved=$(numfmt --to=iec "$TOTAL_SAVED" 2>/dev/null || echo "${TOTAL_SAVED}B")
+  ui_success "Post-install cleanup complete (freed $local_saved)"
+else
+  ui_success "Post-install cleanup complete"
+fi

@@ -85,7 +85,7 @@ fi
 _zshrc_timing_log "mise"
 
 # 🔐 ── SSH Agent ─────────────────────────────────────────────────────
-if ! pgrep -u "$USER" ssh-agent >/dev/null; then
+if ! pgrep -u "${USER:-$(whoami)}" ssh-agent >/dev/null 2>&1; then
   eval "$(ssh-agent -s)" >/dev/null
 fi
 alias addkey='ssh-add "$(find ~/.ssh -maxdepth 1 -name "id_ed25519*" ! -name "*.pub" | head -1)"'
@@ -132,8 +132,8 @@ alias vc='vault-close'
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ────────────────────────────────────
-alias us='bash ~/.dotfiles/scripts/update-system.sh'
-alias clup='bash ~/.dotfiles/scripts/clean-system.sh'
+alias us='bash ~/.dotfiles/scripts/maintenance/update.sh'
+alias clup='bash ~/.dotfiles/scripts/maintenance/clean.sh'
 alias book='firefox ~/books/book/book/index.html 2>/dev/null'
 _zshrc_timing_log "script aliases"
 

@@ -39,7 +39,7 @@ The installer is a thin orchestrator that runs these steps in order:
 | Language runtimes | mise | `.mise.toml` |
 | Shell plugins | Zinit | `.zshrc` |
 | Prompt | Starship | `.config/starship.toml` |
-| Configs | Symlinks | `scripts/setup-symlinks.sh` |
+| Configs | Symlinks | `scripts/setup/symlinks.sh` |
 
 ---
 
@@ -47,30 +47,37 @@ The installer is a thin orchestrator that runs these steps in order:
 
 | Script | Purpose |
 |--------|---------|
-| `install.sh` | Main orchestrator |
-| `setup-symlinks.sh` | Symlinks tracked config files |
-| `setup-fonts.sh` | Nerd Font detection and install |
-| `setup-shell.sh` | Zinit install, chsh offer |
-| `setup-git-ssh.sh` | Git identity and SSH key setup |
-| `post-cleanup.sh` | Temp file and package cleanup |
-| `post-validate.sh` | Version checks and final checklist |
-| `clean-system.sh` | Interactive cache/trash cleanup |
-| `update-system.sh` | APT system update |
-| `test-validate.sh` | CI validation (Docker/LXC) |
+| `bin/dotfiles` | CLI — test, update, doctor, edit |
+| `scripts/install.sh` | Main orchestrator |
+| `scripts/doctor.sh` | Version checks and final checklist |
+| `scripts/setup/symlinks.sh` | Symlinks tracked config files |
+| `scripts/setup/fonts.sh` | Nerd Font detection and install |
+| `scripts/setup/shell.sh` | Zinit install, chsh offer |
+| `scripts/setup/git-ssh.sh` | Git identity and SSH key setup |
+| `scripts/maintenance/update.sh` | APT system update |
+| `scripts/maintenance/clean.sh` | Interactive cache/trash cleanup |
+| `scripts/maintenance/cleanup.sh` | Brew/APT post-install cleanup |
+| `scripts/test/validate.sh` | CI validation (Docker) |
 
 ---
 
 ## Testing
 
 ```bash
-# Full isolated test via Docker
+# Full isolated CI test via Docker
 dotfiles test
+
+# Interactive test — see Gum UI, prompts, full experience
+dotfiles test -i
 
 # Check current machine state
 dotfiles doctor
 
 # Pull latest + update tools + re-link
 dotfiles update
+
+# Open dotfiles in $EDITOR
+dotfiles edit
 ```
 
 ---
