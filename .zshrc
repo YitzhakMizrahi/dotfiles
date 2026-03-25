@@ -23,7 +23,6 @@ fi
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light Aloxaf/fzf-tab
-zinit light starship/starship
 _zshrc_timing_log "zinit"
 
 # 🌍 ── Environment ───────────────────────────────────────────────────

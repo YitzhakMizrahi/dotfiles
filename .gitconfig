@@ -21,9 +21,9 @@
   ps = push
 
 [safe]
-  directory = *
+  directory = /home
 
-[coulumn]
+[column]
   ui = auto
 
 [branch]
