@@ -27,6 +27,8 @@ zinit light starship/starship
 _zshrc_timing_log "zinit"
 
 # 🌍 ── Environment ─────────────────────────────────────────────────────
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.dotfiles/scripts:$PATH"
 # NEW: local user binaries first so lsd / starship via cargo/pipx work
@@ -38,10 +40,17 @@ _zshrc_timing_log "env setup"
 
 # 📝 ── History Settings ───────────────────────────────────────────────
 HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-setopt HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS HIST_VERIFY \
-       APPEND_HISTORY SHARE_HISTORY
+HISTSIZE=5000
+SAVEHIST=5000
+
+setopt HIST_IGNORE_SPACE
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
+setopt APPEND_HISTORY
+
+unsetopt SHARE_HISTORY
 _zshrc_timing_log "history"
 
 # 🍺 ── Homebrew ───────────────────────────────────────────────────────
@@ -114,7 +123,6 @@ _zshrc_timing_log "git aliases"
 # 🛠️ ── Aliases: Utility ───────────────────────────────────────────────────────
 alias reload='source ~/.zshrc'
 alias reload-t='SOURCE_TIMING=true source ~/.zshrc'
-alias please='sudo $(fc -ln -1)'
 alias py='python3'
 alias ipy='ipython'
 alias rm='rm -i'
@@ -123,10 +131,10 @@ alias mv='mv -i'
 _zshrc_timing_log "utility aliases"
 
 # 🛠️ ── Aliases: Personal Scripts ───────────────────────────────────────
-alias sl='bash ~/.dotfiles/scripts/scripts_list.sh'
-alias us='bash ~/.dotfiles/scripts/update_system.sh'
+alias sl='bash ~/.dotfiles/scripts/scripts-list.sh'
+alias us='~/.dotfiles/scripts/update-system.sh'
 alias clup='bash ~/.dotfiles/scripts/cleanup.sh'
-alias diu='bash ~/.dotfiles/scripts/disk_usage.sh'
+alias diu='bash ~/.dotfiles/scripts/disk-usage.sh'
 alias book='firefox ~/books/book/book/index.html 2>/dev/null'
 _zshrc_timing_log "script aliases"
 
@@ -194,3 +202,4 @@ if [[ $SOURCE_TIMING == "true" ]]; then
   echo "🕒 .zshrc fully loaded in ${ZSHRC_DURATION_MS} ms"
 fi
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="$HOME/tools/godot:$PATH"
