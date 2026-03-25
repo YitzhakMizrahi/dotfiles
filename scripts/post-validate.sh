@@ -7,7 +7,7 @@
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
 # ── Tool Version Checks ──────────────────────────────────────
 print_version() {
@@ -16,14 +16,21 @@ print_version() {
   if command -v "$cmd" >/dev/null 2>&1; then
     local version
     version="$($cmd --version 2>/dev/null | head -n 1)"
-    printf "  %-12s  %s\n" "$label" "$version"
+    if [[ "$HAS_GUM" -eq 1 ]]; then
+      printf "  $(gum style --foreground "$GB_GREEN" "✓") %-12s  %s\n" "$label" "$version"
+    else
+      printf "  %-12s  %s\n" "$label" "$version"
+    fi
   else
-    printf "  %-12s  Not found\n" "$label"
+    if [[ "$HAS_GUM" -eq 1 ]]; then
+      printf "  $(gum style --foreground "$GB_RED" "✗") %-12s  Not found\n" "$label"
+    else
+      printf "  %-12s  Not found\n" "$label"
+    fi
   fi
 }
 
-echo
-info "Checking installed tools..."
+section "Installed Tools"
 echo
 
 # Core tools
@@ -31,6 +38,7 @@ print_version "Git" "git"
 print_version "Zsh" "zsh"
 print_version "tmux" "tmux"
 print_version "Starship" "starship"
+print_version "gum" "gum"
 
 echo
 
@@ -48,28 +56,39 @@ print_version "gh" "gh"
 print_version "btop" "btop"
 print_version "fastfetch" "fastfetch"
 
+# ── Language Runtimes ────────────────────────────────────────
+section "Language Runtimes"
 echo
-
-# Language runtimes via mise
 if command -v mise >/dev/null 2>&1; then
-  info "Language runtimes (mise):"
-  mise list 2>/dev/null || warn "No runtimes installed yet."
+  mise list 2>/dev/null || ui_warn "No runtimes installed yet"
 else
-  warn "mise not found — language runtimes not managed."
+  ui_warn "mise not found — language runtimes not managed"
 fi
 
 # ── Symlink Validation ────────────────────────────────────────
+section "Symlinks"
 echo
-info "Checking symlinks..."
 
 check_symlink() {
   local target="$1"
   if [[ -L "$target" ]]; then
-    printf "  %-40s  OK\n" "$target"
+    if [[ "$HAS_GUM" -eq 1 ]]; then
+      echo "  $(gum style --foreground "$GB_GREEN" "✓") $target"
+    else
+      printf "  %-40s  OK\n" "$target"
+    fi
   elif [[ -e "$target" ]]; then
-    printf "  %-40s  EXISTS (not a symlink)\n" "$target"
+    if [[ "$HAS_GUM" -eq 1 ]]; then
+      echo "  $(gum style --foreground "$GB_YELLOW" "⚠") $target (not a symlink)"
+    else
+      printf "  %-40s  EXISTS (not a symlink)\n" "$target"
+    fi
   else
-    printf "  %-40s  MISSING\n" "$target"
+    if [[ "$HAS_GUM" -eq 1 ]]; then
+      echo "  $(gum style --foreground "$GB_RED" "✗") $target (missing)"
+    else
+      printf "  %-40s  MISSING\n" "$target"
+    fi
   fi
 }
 
@@ -82,12 +101,11 @@ check_symlink "$HOME/.config/lazygit/config.yml"
 check_symlink "$HOME/.config/wezterm/wezterm.lua"
 
 # ── Final Checklist ───────────────────────────────────────────
+section "Next Steps"
 echo
-info "Things you may still want to do manually:"
-echo
-echo "  - Run 'gh auth login' to authenticate GitHub CLI"
-echo "  - Run 'exec zsh' or open a new terminal to reload shell"
-echo "  - Review ~/.gitconfig.local for correctness"
+echo "    gh auth login                          Authenticate GitHub CLI"
+echo "    exec zsh                               Reload shell"
+echo "    cat ~/.gitconfig.local                 Review Git identity"
 
 echo
-success "Post-install validation complete."
+ui_success "Post-install validation complete"

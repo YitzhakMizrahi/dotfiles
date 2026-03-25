@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 # ╭────────────────────────────────────────────────────────────╮
-# │                 🔗 Dotfile Symlink Setup                   │
+# │                  Dotfile Symlink Setup                     │
 # ╰────────────────────────────────────────────────────────────╯
 # Checks and creates symlinks for tracked dotfiles
 
 set -e
 
-source "$(dirname "$0")/lib/logging.sh"
+source "$(dirname "$0")/lib/ui.sh"
 
 resolve_path() {
   echo "${1/#\~/$HOME}"
@@ -19,11 +19,9 @@ link_dotfile() {
   target=$(resolve_path "$1")
   source=$(resolve_path "$2")
 
-  info "Checking $target..."
-
   # Source must exist in the repo — if it doesn't, that's a real problem
   if [[ ! -e "$source" ]]; then
-    warn "Source missing: $source — skipping."
+    ui_warn "Source missing: $source — skipping"
     return 0
   fi
 
@@ -32,20 +30,20 @@ link_dotfile() {
     local actual_link
     actual_link="$(readlink "$target")"
     if [[ "$actual_link" == "$source" ]]; then
-      success "OK: $target"
+      ui_success "OK: $target"
       return 0
     fi
-    warn "Incorrect link. Fixing: $target"
+    ui_warn "Incorrect link — fixing: $target"
     rm -f "$target"
   elif [[ -e "$target" ]]; then
-    warn "Target exists and is not a symlink: $target — skipping."
+    ui_warn "Target exists and is not a symlink: $target — skipping"
     return 0
   fi
 
   # Create parent directory and symlink
   mkdir -p "$(dirname "$target")"
   ln -sf "$source" "$target"
-  success "Linked: $target → $source"
+  ui_success "Linked: $target → $source"
 }
 
 # ── Symlink Targets ───────────────────────────────────────────
@@ -60,13 +58,9 @@ declare -A SYMLINKS=(
 )
 
 # ── Main ──────────────────────────────────────────────────────
-echo
-info "Initializing dotfile symlink setup..."
-echo
-
 for target in "${!SYMLINKS[@]}"; do
   link_dotfile "$target" "${SYMLINKS[$target]}"
 done
 
 echo
-success "Symlinks checked and ready."
+ui_success "Symlinks checked and ready"
