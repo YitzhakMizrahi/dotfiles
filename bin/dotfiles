@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR="$HOME/.dotfiles"
+
+case "${1:-}" in
+  test)
+    echo "Building dotfiles test image..."
+    docker build --network host -f "$DOTFILES_DIR/Dockerfile.test" -t dotfiles-test "$DOTFILES_DIR"
+    ;;
+  update)
+    echo "Updating dotfiles..."
+    git -C "$DOTFILES_DIR" pull --rebase --autostash
+
+    if command -v brew &>/dev/null; then
+      echo "Updating Homebrew and running bundle..."
+      brew update
+      brew bundle --file="$DOTFILES_DIR/Brewfile"
+      brew cleanup -s
+    fi
+
+    if command -v mise &>/dev/null; then
+      echo "Updating runtimes..."
+      export MISE_GLOBAL_CONFIG_FILE="$DOTFILES_DIR/.mise.toml"
+      mise install --yes
+    fi
+
+    echo "Re-linking symlinks..."
+    bash "$DOTFILES_DIR/scripts/setup-symlinks.sh"
+
+    echo "Done."
+    ;;
+  doctor)
+    bash "$DOTFILES_DIR/scripts/post-validate.sh"
+    ;;
+  edit)
+    cd "$DOTFILES_DIR" && ${EDITOR:-vim} .
+    ;;
+  *)
+    echo "Usage: dotfiles {test|update|doctor|edit}"
+    echo
+    echo "  test     Build and run Docker test (full install validation)"
+    echo "  update   Pull latest, brew bundle, mise install, re-link"
+    echo "  doctor   Run post-install validation checks"
+    echo "  edit     Open dotfiles directory in \$EDITOR"
+    exit 1
+    ;;
+esac
