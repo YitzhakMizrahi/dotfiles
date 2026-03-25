@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ╭────────────────────────────────────────────────────────────╮
-# │                  🧪 Post-Bootstrap Checklist                │
+# │                Post-Install Validation                     │
 # ╰────────────────────────────────────────────────────────────╯
 # Verifies tool versions and reminds about final manual steps
 
@@ -9,67 +9,85 @@ set -e
 
 source "$(dirname "$0")/lib/logging.sh"
 
-# ── Tool Version Checks ──
+# ── Tool Version Checks ──────────────────────────────────────
 print_version() {
-  local emoji="$1"
-  local label="$2"
-  local cmd="$3"
+  local label="$1"
+  local cmd="$2"
   if command -v "$cmd" >/dev/null 2>&1; then
+    local version
     version="$($cmd --version 2>/dev/null | head -n 1)"
-    printf "  %s  %-10s  %s\n" "$emoji" "$label" "$version"
+    printf "  %-12s  %s\n" "$label" "$version"
   else
-    printf "  ⚠️   %-10s  Not found\n" "$label"
+    printf "  %-12s  Not found\n" "$label"
   fi
 }
 
 echo
-info "Checking tool versions …"
+info "Checking installed tools..."
 echo
 
-# Source nvm if needed
-export NVM_DIR="$HOME/.nvm"
-if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  # shellcheck disable=SC1090
-  source "$NVM_DIR/nvm.sh"
+# Core tools
+print_version "Git" "git"
+print_version "Zsh" "zsh"
+print_version "tmux" "tmux"
+print_version "Starship" "starship"
+
+echo
+
+# Modern CLI tools
+print_version "bat" "bat"
+print_version "lsd" "lsd"
+print_version "fd" "fd"
+print_version "ripgrep" "rg"
+print_version "fzf" "fzf"
+print_version "zoxide" "zoxide"
+print_version "delta" "delta"
+print_version "lazygit" "lazygit"
+print_version "yazi" "yazi"
+print_version "gh" "gh"
+print_version "btop" "btop"
+print_version "fastfetch" "fastfetch"
+
+echo
+
+# Language runtimes via mise
+if command -v mise >/dev/null 2>&1; then
+  info "Language runtimes (mise):"
+  mise list 2>/dev/null || warn "No runtimes installed yet."
+else
+  warn "mise not found — language runtimes not managed."
 fi
 
-# Python (pyenv)
-if [ -d "$HOME/.pyenv" ]; then
-  export PYENV_ROOT="$HOME/.pyenv"
-  export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init --path 2>/dev/null)"
-  eval "$(pyenv init - 2>/dev/null)"
+# ── Symlink Validation ────────────────────────────────────────
+echo
+info "Checking symlinks..."
 
-  if command -v pyenv >/dev/null 2>&1; then
-    python_ver=$(pyenv version-name)
-    printf "  🐍  %-10s  %s\n" "Python" "$python_ver"
+check_symlink() {
+  local target="$1"
+  if [[ -L "$target" ]]; then
+    printf "  %-40s  OK\n" "$target"
+  elif [[ -e "$target" ]]; then
+    printf "  %-40s  EXISTS (not a symlink)\n" "$target"
   else
-    printf "  ⚠️   %-10s  pyenv not initialized\n" "Python"
+    printf "  %-40s  MISSING\n" "$target"
   fi
-else
-  printf "  ⚠️   %-10s  Not found\n" "Python"
-fi
+}
 
-# Node.js
-if command -v node >/dev/null 2>&1; then
-  printf "  🟢  %-10s  %s\n" "Node.js" "$(node --version)"
-else
-  printf "  ⚠️   %-10s  Not found\n" "Node.js"
-fi
+check_symlink "$HOME/.zshrc"
+check_symlink "$HOME/.tmux.conf"
+check_symlink "$HOME/.gitconfig"
+check_symlink "$HOME/.config/lsd/config.yaml"
+check_symlink "$HOME/.config/gh/config.yml"
+check_symlink "$HOME/.config/lazygit/config.yml"
+check_symlink "$HOME/.config/wezterm/wezterm.lua"
 
-# Other tools
-print_version "📦" "pnpm" "pnpm"
-print_version "🔧" "Git"  "git"
-print_version "💻" "Zsh"  "zsh"
+# ── Final Checklist ───────────────────────────────────────────
+echo
+info "Things you may still want to do manually:"
+echo
+echo "  - Run 'gh auth login' to authenticate GitHub CLI"
+echo "  - Run 'exec zsh' or open a new terminal to reload shell"
+echo "  - Review ~/.gitconfig.local for correctness"
 
 echo
-echo -e "📋 \033[1;34mFinal checklist:\033[0m"
-echo
-echo -e "  📝  Things you may still want to do manually:"
-echo -e "  ⚡  Run '\033[1;33mgh auth login\033[0m' to enable GitHub CLI SSH key upload"
-echo -e "  ⌘   Open a new shell session or run '\033[1;33mexec zsh\033[0m' to reload prompt"
-echo -e "  🧪  Customize your \033[1;36m~/.config/starship.toml\033[0m if needed"
-echo -e "  🛠️  Review \033[1;36m~/.gitconfig.local\033[0m for correctness"
-
-echo
-success "🌟 Post-bootstrap check complete. You are all set!"
+success "Post-install validation complete."
