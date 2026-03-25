@@ -21,7 +21,7 @@ bash ~/.dotfiles/scripts/install.sh
 
 The installer is a thin orchestrator that runs these steps in order:
 
-1. **APT base tools** — git, zsh, tmux, curl, wget, build-essential (Linux/WSL)
+1. **APT base tools** — git, zsh, tmux, curl, wget, unzip, build-essential, gocryptfs (Linux/WSL)
 2. **Homebrew** — installed if missing, then `brew bundle` from `Brewfile`
 3. **Language runtimes** — Python, Node, Go, Rust via `mise` and `.mise.toml`
 4. **Symlinks** — tracked configs linked to `$HOME`
@@ -58,17 +58,17 @@ Edit `.mise.toml`, then run `mise install`:
 
 ```bash
 # In .mise.toml under [tools]:
-#   python = "latest"
+#   python = "3.13"
 mise install
 ```
 
 ### Symlinks (config files)
 
-Edit the `SYMLINKS` map in `scripts/setup/symlinks.sh`:
+Edit the `SYMLINKS` list in `scripts/setup/symlinks.sh`:
 
 ```bash
-# Add an entry:
-#   ["~/.config/foo/config.yml"]="~/.dotfiles/.config/foo/config.yml"
+# Add an entry (format: "target|source"):
+#   "~/.config/foo/config.yml|~/.dotfiles/.config/foo/config.yml"
 dotfiles update    # re-links everything
 ```
 
@@ -87,6 +87,7 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 | Language runtimes | mise | `.mise.toml` |
 | Shell plugins | Zinit | `.zshrc` |
 | Prompt | Starship | `.config/starship.toml` |
+| Terminal | WezTerm | `.config/wezterm/wezterm.lua` |
 | Configs | Symlinks | `scripts/setup/symlinks.sh` |
 
 ---
@@ -104,7 +105,7 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 | `scripts/setup/git-ssh.sh` | Git identity and SSH key setup |
 | `scripts/maintenance/update.sh` | APT system update |
 | `scripts/maintenance/clean.sh` | Interactive cache/trash cleanup |
-| `scripts/test/validate.sh` | CI validation (Docker) |
+| `scripts/test/validate.sh` | CI validation (Docker + macOS) |
 
 ### Shared libraries
 
@@ -129,14 +130,14 @@ dotfiles edit         # Open dotfiles directory in $EDITOR
 
 ## Testing
 
-The CI test builds a clean Ubuntu container and runs the full installer:
+CI runs on both Linux (Docker) and macOS (native):
 
 ```bash
-dotfiles test         # Build and validate (38 checks)
+dotfiles test         # Build and validate locally via Docker
 ```
 
 Set `DOTFILES_CI=1` to run the installer non-interactively (skips prompts,
-uses defaults). This is what `dotfiles test` uses internally.
+uses defaults). This is what CI and `dotfiles test` use internally.
 
 On WSL, font installation is automatically skipped (use your Windows
 terminal's font settings instead). Override with `DOTFILES_FORCE_FONTS=1`
@@ -151,6 +152,8 @@ for testing.
 - **Single source of truth** — Brewfile, .mise.toml, and symlinks.sh drive all validation dynamically
 - **Symlinks only where necessary** — PATH and env vars preferred where possible
 - **Gum UI library** — elegant terminal output with Gruvbox theme, ANSI fallback
+- **Cross-platform** — all scripts portable to macOS (Bash 3.2 + BSD tools), CI runs on both Linux and macOS
+- **Unified terminal config** — single `wezterm.lua` with platform detection, auto-synced to Windows on WSL
 - **CI mode** — `DOTFILES_CI=1` skips interactive prompts for automated testing
 
 ---
