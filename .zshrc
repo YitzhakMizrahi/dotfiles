@@ -25,7 +25,7 @@ else
   echo "Zinit not found, please run the install script again." >&2
 fi
 
-# Plugins ─────────────────────────────────────────────────────────────
+# Plugins (loaded synchronously — small and needed on first keystroke)
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light Aloxaf/fzf-tab
@@ -78,9 +78,9 @@ brew_ensure_path
 _zshrc_timing_log "homebrew"
 
 # 🔧 ── mise (language runtimes) ───────────────────────────────────────
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
-fi
+# Add shims directly — avoids spawning mise on every shell start.
+# Use 'eval "$(mise activate zsh)"' if you need per-project auto-switching.
+path_prepend "${MISE_DATA_DIR:-$HOME/.local/share}/mise/shims"
 _zshrc_timing_log "mise"
 
 # 🔐 ── SSH Agent ─────────────────────────────────────────────────────
@@ -168,6 +168,7 @@ if [[ -s "$zcd" && $(date +'%j') == $(stat -c '%j' "$zcd" 2>/dev/null || stat -f
   compinit -C -d "$zcd"
 else
   compinit -d "$zcd"
+  { zcompile "$zcd" } &!
 fi
 _zshrc_timing_log "compinit"
 
