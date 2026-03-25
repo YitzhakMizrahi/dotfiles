@@ -43,7 +43,10 @@ fi
 success "Git identity saved to $GITCONFIG_LOCAL."
 
 # ── SSH Key Check ────────────────────────────────────────────
-mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub")
+mkdir -p "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+
+mapfile -t SSH_KEYS < <(find "$HOME/.ssh" -maxdepth 1 -type f -name "id_ed25519*" ! -name "*.pub" 2>/dev/null)
 
 if [[ ${#SSH_KEYS[@]} -eq 0 ]]; then
   warn "No SSH private keys found in ~/.ssh."
