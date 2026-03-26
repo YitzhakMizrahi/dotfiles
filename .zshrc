@@ -149,7 +149,25 @@ _zshrc_timing_log "script aliases"
 mkcd() { mkdir -p "$1" && cd "$1"; }
 
 # Tmux workspace launchers — attach if exists, create with layout if not
-# Usage: dashboard [path]   agents [path]
+# Usage: dev [path]   dashboard [path]   agents [path]
+dev() {
+  local dir="${1:-.}"
+  dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "Invalid path: $1"; return 1; }
+  code "$dir"
+  # Create dashboard in background (don't attach)
+  if ! tmux has-session -t dashboard 2>/dev/null; then
+    tmux new-session -d -s dashboard -c "$dir"
+    tmux send-keys -t dashboard 'lazygit' Enter
+    tmux split-window -h -t dashboard -c "$dir"
+    tmux send-keys -t dashboard 'lazydocker' Enter
+    tmux split-window -v -f -t dashboard -p 20 -c "$dir"
+    tmux send-keys -t dashboard 'docker compose logs -f --tail=50' Enter
+    tmux select-pane -t dashboard:0.0
+  fi
+  # Create and attach to agents
+  agents "$dir"
+}
+
 dashboard() {
   local dir="${1:-.}"
   dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "Invalid path: $1"; return 1; }
