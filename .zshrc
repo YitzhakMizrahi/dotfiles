@@ -217,6 +217,7 @@ fi
 _zshrc_timing_log "compinit"
 
 # 🧭 ── zoxide ────────────────────────────────────────────────────────
+[[ ! -o interactive ]] && export _ZO_DOCTOR=0   # suppress false positives in non-interactive shells
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init --cmd cd zsh)"
 fi
