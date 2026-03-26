@@ -30,6 +30,7 @@ brew "jq"                  # JSON processor
 brew "gum"                 # Elegant shell script UI (Charmbracelet)
 brew "gh"                  # GitHub CLI
 brew "lazygit"             # Git TUI
+brew "lazydocker"          # Docker TUI
 brew "yazi"                # Terminal file manager
 brew "btop"                # System monitor
 brew "starship"            # Cross-shell prompt

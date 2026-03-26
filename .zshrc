@@ -101,8 +101,17 @@ _zshrc_timing_log "file nav aliases"
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
 alias dlogs='docker logs --tail 100 -f'
 alias dexec='docker exec -it'
-alias dstop='docker stop $(docker ps -q)'
-alias dclean='docker container prune -f && docker system prune -a -f --volumes'
+alias ddf='docker system df'                        # disk usage breakdown
+alias dprune='docker system prune -f'               # safe: stopped containers, dangling images, unused networks
+
+# 🐳 ── Aliases: Docker Compose ──────────────────────────────────────
+alias dc='docker compose'
+alias dcu='docker compose up -d'
+alias dcd='docker compose down'
+alias dcl='docker compose logs -f --tail=50'
+alias dcr='docker compose restart'
+alias dcps='docker compose ps'
+alias dcb='docker compose build'
 _zshrc_timing_log "docker aliases"
 
 # 🌱 ── Aliases: Git ──────────────────────────────────────────────────
@@ -138,6 +147,41 @@ _zshrc_timing_log "script aliases"
 
 # ⚙️ ── Functions ─────────────────────────────────────────────────────
 mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# Tmux workspace launchers — attach if exists, create with layout if not
+# Usage: dashboard [path]   agents [path]
+dashboard() {
+  local dir="${1:-.}"
+  dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "Invalid path: $1"; return 1; }
+  if tmux has-session -t dashboard 2>/dev/null; then
+    tmux attach -t dashboard
+    return
+  fi
+  tmux new-session -d -s dashboard -c "$dir"
+  tmux send-keys -t dashboard 'lazygit' Enter
+  tmux split-window -h -t dashboard -c "$dir"
+  tmux send-keys -t dashboard 'lazydocker' Enter
+  tmux split-window -v -f -t dashboard -p 20 -c "$dir"
+  tmux send-keys -t dashboard 'docker compose logs -f --tail=50' Enter
+  tmux select-pane -t dashboard:0.0
+  tmux attach -t dashboard
+}
+
+agents() {
+  local dir="${1:-.}"
+  dir=$(cd "$dir" 2>/dev/null && pwd) || { echo "Invalid path: $1"; return 1; }
+  if tmux has-session -t agents 2>/dev/null; then
+    tmux attach -t agents
+    return
+  fi
+  tmux new-session -d -s agents -c "$dir"
+  tmux send-keys -t agents 'claude' Enter
+  tmux split-window -h -t agents -c "$dir"
+  tmux send-keys -t agents 'codex' Enter
+  tmux select-pane -t agents:0.0
+  tmux attach -t agents
+}
+
 _zshrc_timing_log "functions"
 
 # 💬 ── Prompt (starship) ─────────────────────────────────────────────
