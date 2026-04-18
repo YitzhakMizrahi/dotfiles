@@ -14,6 +14,7 @@ tool_cmd() {
   case "$1" in
     ripgrep)   echo "rg" ;;
     git-delta) echo "delta" ;;
+    neovim)    echo "nvim" ;;
     *)         echo "$1" ;;
   esac
 }

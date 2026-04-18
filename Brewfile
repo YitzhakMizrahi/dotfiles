@@ -16,7 +16,7 @@ brew "wget"                # HTTP client
 
 # ── Modern CLI Replacements ───────────────────────────────────
 brew "bat"                 # cat replacement with syntax highlighting
-brew "lsd"                 # ls replacement with icons
+brew "eza"                 # ls replacement with icons
 brew "fd"                  # find replacement
 brew "ripgrep"             # grep replacement
 brew "fzf"                 # Fuzzy finder
@@ -36,3 +36,6 @@ brew "btop"                # System monitor
 brew "starship"            # Cross-shell prompt
 brew "tldr"                # Simplified man pages
 brew "fastfetch"           # System info (replaces neofetch)
+
+# ── Editor ────────────────────────────────────────────────────
+brew "neovim"              # Modal editor

@@ -91,10 +91,10 @@ alias addkey='ssh-add "$(find ~/.ssh -maxdepth 1 -name "id_ed25519*" ! -name "*.
 _zshrc_timing_log "ssh-agent"
 
 # 📁 ── Aliases: File Navigation ──────────────────────────────────────
-alias ls='lsd --group-dirs=first --icon=always'
-alias ll='ls -lh'
+alias ls='eza --group-directories-first --icons=always'
+alias ll='ls -l'
 alias la='ls -A'
-alias lla='ls -lAh'
+alias lla='ls -lA'
 _zshrc_timing_log "file nav aliases"
 
 # 🐳 ── Aliases: Docker ───────────────────────────────────────────────
@@ -237,9 +237,9 @@ _zshrc_timing_log "compinit"
 # 🧭 ── zoxide ────────────────────────────────────────────────────────
 [[ ! -o interactive ]] && export _ZO_DOCTOR=0   # suppress false positives in non-interactive shells
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init --cmd cd zsh)"
+  eval "$(zoxide init zsh)"
+  alias zj='__zoxide_zi'   # zoxide interactive picker (avoids the `zi` collision with zinit)
 fi
-alias zi='__zoxide_zi'
 _zshrc_timing_log "zoxide"
 
 # 🕒 ── Final Timing Output ───────────────────────────────────────────
