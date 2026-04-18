@@ -79,7 +79,7 @@ _needs_sudo=0
 if [[ "$PLATFORM" != "macos" ]] || ! command -v brew &>/dev/null; then
   _needs_sudo=1
 fi
-if [[ "$_needs_sudo" -eq 1 ]] && command -v sudo &>/dev/null; then
+if [[ "$_needs_sudo" -eq 1 ]] && command -v sudo &>/dev/null && [[ "$DOTFILES_CI" -eq 0 ]]; then
   ui_info "Priming sudo (you'll be asked once)..."
   if sudo -v; then
     ( while sleep 50; do sudo -n true 2>/dev/null || exit; kill -0 "$$" 2>/dev/null || exit; done ) &
