@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal dotfiles — modular, declarative, and tested. Designed for Ubuntu/WSL2 and macOS.
+Personal dotfiles — modular, declarative, and tested. Designed for Ubuntu/WSL2, Fedora, and macOS.
 
 ---
 
@@ -21,7 +21,7 @@ bash ~/.dotfiles/scripts/install.sh
 
 The installer is a thin orchestrator that runs these steps in order:
 
-1. **APT base tools** — git, zsh, tmux, curl, wget, unzip, build-essential, gocryptfs (Linux/WSL)
+1. **Base tools** — git, zsh, tmux, curl, wget, unzip, build tools, gocryptfs (apt on Debian/Ubuntu, dnf on Fedora)
 2. **Homebrew** — installed if missing, then `brew bundle` from `Brewfile`
 3. **Language runtimes** — Python, Node, Go, Rust via `mise` and `.mise.toml`
 4. **Symlinks** — tracked configs linked to `$HOME`
@@ -103,7 +103,7 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 | `scripts/setup/fonts.sh` | Nerd Font detection and install |
 | `scripts/setup/shell.sh` | Default shell (chsh) |
 | `scripts/setup/git-ssh.sh` | Git identity and SSH key setup |
-| `scripts/maintenance/update.sh` | APT system update |
+| `scripts/maintenance/update.sh` | System update (apt or dnf) |
 | `scripts/maintenance/clean.sh` | Interactive cache/trash cleanup |
 | `scripts/test/validate.sh` | CI validation (Docker + macOS) |
 
@@ -142,6 +142,25 @@ uses defaults). This is what CI and `dotfiles test` use internally.
 On WSL, font installation is automatically skipped (use your Windows
 terminal's font settings instead). Override with `DOTFILES_FORCE_FONTS=1`
 for testing.
+
+---
+
+## Fedora Notes
+
+- `dnf` installs `@development-tools` plus `git`, `zsh`, `tmux`, `curl`,
+  `wget`, `unzip`, `procps-ng`, `file`, and `gocryptfs` before Homebrew
+  bootstraps. `@development-tools` works on both `dnf4` and `dnf5`.
+- **Immutable variants** (Silverblue, Kinoite, Bluefin, Bazzite) ship a
+  read-only host filesystem, so `install.sh` detects `/run/ostree-booted`
+  and exits early with instructions to run inside a mutable container:
+
+  ```bash
+  toolbox create --distro fedora
+  toolbox enter
+  bash ~/.dotfiles/scripts/install.sh
+  ```
+
+- Tested on traditional Fedora Workstation via CI (`Dockerfile.fedora.test`).
 
 ---
 

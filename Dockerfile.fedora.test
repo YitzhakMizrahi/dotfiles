@@ -1,0 +1,49 @@
+# ╭────────────────────────────────────────────────────────────╮
+# │          Dotfiles Install Test — Fedora                    │
+# ╰────────────────────────────────────────────────────────────╯
+#
+# CI mode (automated):
+#   docker build --network host -f Dockerfile.fedora.test -t dotfiles-fedora-test .
+#
+# Interactive mode (see Gum UI, prompts, etc.):
+#   docker build --network host -f Dockerfile.fedora.test --target ready -t dotfiles-fedora-ready .
+#   docker run -it --network host dotfiles-fedora-ready bash scripts/install.sh
+
+FROM fedora:latest AS base
+
+# Install minimal prerequisites (what a fresh Fedora machine has)
+RUN dnf install -y \
+    sudo \
+    curl \
+    git \
+    ca-certificates \
+    glibc-langpack-en \
+    && dnf clean all
+
+ENV LANG=en_US.UTF-8
+
+# Create non-root user (Fedora uses the wheel group for sudo)
+RUN useradd -m -s /bin/bash devuser \
+    && echo "devuser:devuser" | chpasswd \
+    && usermod -aG wheel devuser \
+    && echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser
+
+USER devuser
+WORKDIR /home/devuser
+
+# Copy dotfiles into the container
+COPY --chown=devuser:devuser . /home/devuser/.dotfiles
+
+# ── Interactive target ────────────────────────────────────────
+# Stops here — shell in and run install.sh yourself to see full UI
+FROM base AS ready
+CMD ["bash"]
+
+# ── CI target (default) ──────────────────────────────────────
+FROM base AS ci
+ENV DOTFILES_CI=1
+RUN cd /home/devuser/.dotfiles \
+    && bash scripts/install.sh
+
+# Run validation tests
+RUN bash /home/devuser/.dotfiles/scripts/test/validate.sh

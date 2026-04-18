@@ -10,6 +10,7 @@ set -e
 source "$(dirname "$0")/lib/ui.sh"
 source "$(dirname "$0")/lib/paths.sh"
 source "$(dirname "$0")/lib/tools.sh"
+source "$(dirname "$0")/lib/platform.sh"
 
 # ── Tool Version Checks ──────────────────────────────────────
 # Strip ANSI escape sequences and terminal responses from version output
@@ -112,7 +113,11 @@ else
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "    Install Docker Desktop: https://docs.docker.com/desktop/install/mac-install/"
   else
-    echo "    Install Docker Engine: https://docs.docker.com/engine/install/"
+    case "$(detect_distro_family)" in
+      fedora) echo "    Install Docker Engine: https://docs.docker.com/engine/install/fedora/" ;;
+      debian) echo "    Install Docker Engine: https://docs.docker.com/engine/install/ubuntu/" ;;
+      *)      echo "    Install Docker Engine: https://docs.docker.com/engine/install/" ;;
+    esac
   fi
 fi
 

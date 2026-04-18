@@ -245,9 +245,11 @@ _timer_elapsed() {
   fi
 }
 
-# Like section, but prints elapsed time for the previous section
+# Like section, but prints elapsed time for the previous section and
+# records each section's timing so section_summary can recap at the end.
 _SECTION_START=""
 _SECTION_LABEL=""
+_SECTION_TIMINGS=()
 timed_section() {
   local title="$1"
   timed_section_end
@@ -256,21 +258,41 @@ timed_section() {
   _SECTION_LABEL="$title"
 }
 
+# Format a duration in seconds as "Xm Ys" or "Ys"
+_format_duration() {
+  local secs="$1"
+  local mins=$((secs / 60))
+  local rem=$((secs % 60))
+  if [[ $mins -gt 0 ]]; then
+    echo "${mins}m ${rem}s"
+  else
+    echo "${rem}s"
+  fi
+}
+
 # Print elapsed time for the current section (call after the last timed_section)
 timed_section_end() {
   if [[ -n "$_SECTION_START" ]]; then
-    local now elapsed mins secs time_str
+    local now elapsed time_str
     now=$(date +%s)
     elapsed=$(( now - _SECTION_START ))
-    mins=$((elapsed / 60))
-    secs=$((elapsed % 60))
-    if [[ $mins -gt 0 ]]; then
-      time_str="${mins}m ${secs}s"
-    else
-      time_str="${secs}s"
-    fi
+    time_str=$(_format_duration "$elapsed")
+    _SECTION_TIMINGS+=("$_SECTION_LABEL|$elapsed")
     echo -e "  ${_C_GRAY}$_SECTION_LABEL completed in $time_str${_C_RESET}"
     _SECTION_START=""
     _SECTION_LABEL=""
   fi
+}
+
+# Print a recap of all timed_section durations recorded so far.
+section_summary() {
+  [[ ${#_SECTION_TIMINGS[@]} -eq 0 ]] && return 0
+  echo
+  echo "  Sections:"
+  local entry label secs
+  for entry in "${_SECTION_TIMINGS[@]}"; do
+    label="${entry%%|*}"
+    secs="${entry##*|}"
+    printf "    ${_C_GREEN}✓${_C_RESET} %-18s %s\n" "$label" "$(_format_duration "$secs")"
+  done
 }

@@ -5,14 +5,29 @@ source "$HOME/.dotfiles/scripts/lib/paths.sh"
 
 case "${1:-}" in
   test)
-    if [[ "${2:-}" == "-i" || "${2:-}" == "--interactive" ]]; then
-      echo "Building interactive test image..."
-      docker build --network host -f "$DOTFILES_DIR/Dockerfile.test" --target ready -t dotfiles-ready "$DOTFILES_DIR"
+    shift
+    distro="ubuntu"
+    interactive=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        ubuntu|fedora)    distro="$1" ;;
+        -i|--interactive) interactive=1 ;;
+        *) echo "Unknown test arg: $1" >&2; exit 1 ;;
+      esac
+      shift
+    done
+
+    dockerfile="$DOTFILES_DIR/Dockerfile.test"
+    [[ "$distro" == "fedora" ]] && dockerfile="$DOTFILES_DIR/Dockerfile.fedora.test"
+
+    if [[ "$interactive" -eq 1 ]]; then
+      echo "Building interactive test image ($distro)..."
+      docker build --network host -f "$dockerfile" --target ready -t "dotfiles-$distro-ready" "$DOTFILES_DIR"
       echo
-      docker run -it --network host -e DOTFILES_FORCE_FONTS=1 dotfiles-ready bash .dotfiles/scripts/install.sh
+      docker run -it --network host -e DOTFILES_FORCE_FONTS=1 "dotfiles-$distro-ready" bash .dotfiles/scripts/install.sh
     else
-      echo "Building dotfiles CI test image..."
-      docker build --network host -f "$DOTFILES_DIR/Dockerfile.test" -t dotfiles-test "$DOTFILES_DIR"
+      echo "Building dotfiles CI test image ($distro)..."
+      docker build --network host -f "$dockerfile" -t "dotfiles-$distro-test" "$DOTFILES_DIR"
     fi
     ;;
   update)
@@ -68,12 +83,12 @@ case "${1:-}" in
   *)
     echo "Usage: dotfiles {install|update|doctor|test|edit}"
     echo
-    echo "  install        Run full installer (packages, runtimes, shell, git)"
-    echo "  update         Pull latest, upgrade tools and runtimes, re-link"
-    echo "  doctor         Run post-install validation checks"
-    echo "  test           Build and run Docker CI test (automated)"
-    echo "  test -i        Build and launch interactive container (see Gum UI)"
-    echo "  edit           Open dotfiles directory in \$EDITOR"
+    echo "  install                 Run full installer (packages, runtimes, shell, git)"
+    echo "  update                  Pull latest, upgrade tools and runtimes, re-link"
+    echo "  doctor                  Run post-install validation checks"
+    echo "  test [ubuntu|fedora]    Build and run Docker CI test (default: ubuntu)"
+    echo "  test [distro] -i        Build and launch interactive container"
+    echo "  edit                    Open dotfiles directory in \$EDITOR"
     exit 1
     ;;
 esac

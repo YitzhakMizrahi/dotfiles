@@ -231,7 +231,9 @@ if [[ -d "$HOME/.cache/pre-commit" ]]; then
 fi
 
 if command -v apt-get &>/dev/null; then
-  do_clean "APT package cache" sudo apt-get clean -y
+  do_clean "apt cache" sudo apt-get clean -y
+elif command -v dnf &>/dev/null; then
+  do_clean "dnf cache" sudo dnf clean all
 fi
 
 if command -v journalctl &>/dev/null && pidof systemd &>/dev/null; then

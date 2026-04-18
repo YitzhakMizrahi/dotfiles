@@ -8,12 +8,21 @@ on:
 
 jobs:
   linux:
-    name: Linux (Docker)
+    name: Linux (${{ matrix.distro }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [ubuntu, fedora]
+        include:
+          - distro: ubuntu
+            dockerfile: Dockerfile.test
+          - distro: fedora
+            dockerfile: Dockerfile.fedora.test
     steps:
       - uses: actions/checkout@v6
       - name: Build and test
-        run: docker build --network host -f Dockerfile.test -t dotfiles-test .
+        run: docker build --network host -f ${{ matrix.dockerfile }} -t dotfiles-${{ matrix.distro }}-test .
 
   macos:
     name: macOS

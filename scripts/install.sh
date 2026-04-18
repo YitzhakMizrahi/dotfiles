@@ -10,6 +10,8 @@ set -e
 source "$(dirname "$0")/lib/ui.sh"
 source "$(dirname "$0")/lib/paths.sh"
 source "$(dirname "$0")/lib/brew.sh"
+source "$(dirname "$0")/lib/platform.sh"
+source "$(dirname "$0")/lib/tools.sh"
 
 # ── Root Check ────────────────────────────────────────────────
 if [[ "$EUID" -eq 0 ]]; then
@@ -19,29 +21,43 @@ chmod +x "$DOTFILES_DIR/scripts/"*.sh "$DOTFILES_DIR/scripts/"**/*.sh 2>/dev/nul
 chmod +x "$DOTFILES_DIR/bin/"* 2>/dev/null || true
 
 # ── Platform Detection ────────────────────────────────────────
-detect_platform() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "macos"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-      echo "wsl"
-    else
-      echo "linux"
-    fi
-  else
-    echo "unknown"
-  fi
-}
-
 PLATFORM=$(detect_platform)
+DISTRO=$(detect_distro_family)
+PM=$(pkg_manager_name)
+
+# Immutable Fedora: bail early — the host is read-only.
+if is_silverblue; then
+  echo
+  ui_warn "Immutable Fedora (Silverblue/Kinoite/Bluefin) detected."
+  echo "    The host filesystem is read-only — this installer won't work here."
+  echo "    Run it inside a mutable container with toolbox or distrobox:"
+  echo
+  echo "      toolbox create --distro fedora"
+  echo "      toolbox enter"
+  echo "      bash ~/.dotfiles/scripts/install.sh"
+  echo
+  exit 1
+fi
 
 # ── Welcome ──────────────────────────────────────────────────
-banner "Dotfiles Installer" "$PLATFORM · $(uname -m)"
+DISTRO_PRETTY=$(detect_distro_pretty)
+[[ "$PLATFORM" == "wsl" ]] && DISTRO_PRETTY="$DISTRO_PRETTY (WSL)"
+banner "Dotfiles Installer" "$DISTRO_PRETTY · $(uname -m)"
+
+if [[ "$PLATFORM" == "macos" ]]; then
+  pkg_welcome="Homebrew"
+else
+  pkg_welcome="${PM} + Homebrew"
+fi
+
+BREW_COUNT=$(brewfile_formulas "$DOTFILES_DIR/Brewfile" | wc -l | tr -d ' ')
+MISE_COUNT=$(mise_runtimes "$DOTFILES_DIR/.mise.toml" | wc -l | tr -d ' ')
+MISE_LIST=$(mise_runtimes "$DOTFILES_DIR/.mise.toml" | paste -sd, - | sed 's/,/, /g')
 
 echo "  This will install and configure:"
-echo "    • System packages (APT + Homebrew)"
-echo "    • CLI tools (bat, fzf, ripgrep, lsd, etc.)"
-echo "    • Language runtimes (Python, Node, Go, Rust)"
+echo "    • System packages ($pkg_welcome)"
+echo "    • CLI tools ($BREW_COUNT from Brewfile)"
+echo "    • Language runtimes ($MISE_COUNT: $MISE_LIST)"
 echo "    • Shell config (Zsh + Zinit + Starship)"
 echo "    • Git identity & SSH keys"
 echo
@@ -55,6 +71,25 @@ fi
 ui_log_init
 ui_info "Logging to $DOTFILES_LOG"
 echo
+
+# ── Sudo keepalive ────────────────────────────────────────────
+# Prime sudo once up-front and refresh the timestamp in the
+# background, so long-running steps don't re-prompt mid-install.
+_needs_sudo=0
+if [[ "$PLATFORM" != "macos" ]] || ! command -v brew &>/dev/null; then
+  _needs_sudo=1
+fi
+if [[ "$_needs_sudo" -eq 1 ]] && command -v sudo &>/dev/null; then
+  ui_info "Priming sudo (you'll be asked once)..."
+  if sudo -v; then
+    ( while sleep 50; do sudo -n true 2>/dev/null || exit; kill -0 "$$" 2>/dev/null || exit; done ) &
+    __SUDO_KEEPALIVE_PID=$!
+    trap '[[ -n "${__SUDO_KEEPALIVE_PID:-}" ]] && kill "$__SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
+  else
+    ui_fail "sudo authentication failed"
+  fi
+  echo
+fi
 
 _timer_start
 INSTALL_START=$_TIMER_START
@@ -86,8 +121,16 @@ install_homebrew() {
 timed_section "System Packages"
 
 if [[ "$PLATFORM" != "macos" ]]; then
-  step "APT update" sudo apt-get update -y
-  step "APT base tools" sudo apt-get install -y git zsh tmux curl wget unzip build-essential gocryptfs
+  if [[ "$DISTRO" == "unknown" ]]; then
+    echo
+    echo "    Detected: $(describe_os_release)"
+    echo "    Supported families: debian (Debian/Ubuntu), fedora (Fedora/RHEL/CentOS)"
+    echo "    To add support, extend detect_distro_family in scripts/lib/platform.sh"
+    echo
+    ui_fail "Unsupported distro — /etc/os-release did not match any supported family."
+  fi
+  step "${PM}: refresh package lists" pkg_refresh_lists
+  step "${PM}: install base tools"    install_base_tools
 fi
 install_homebrew
 
@@ -197,6 +240,7 @@ fi
 
 # ── Done ──────────────────────────────────────────────────────
 _TIMER_START=$INSTALL_START
+section_summary
 echo
 ui_success "Installation complete in $(_timer_elapsed)"
 echo
