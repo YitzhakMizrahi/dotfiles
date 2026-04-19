@@ -131,6 +131,11 @@ if [[ "$PLATFORM" != "macos" ]]; then
   fi
   step "${PM}: refresh package lists" pkg_refresh_lists
   step "${PM}: install base tools"    install_base_tools
+
+  if [[ "$DISTRO" == "fedora" ]] && command -v flatpak &>/dev/null; then
+    step "flatpak: enable flathub" \
+      flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  fi
 fi
 install_homebrew
 

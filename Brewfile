@@ -39,3 +39,6 @@ brew "fastfetch"           # System info (replaces neofetch)
 
 # ── Editor ────────────────────────────────────────────────────
 brew "neovim"              # Modal editor
+
+# ── Language Tooling ──────────────────────────────────────────
+brew "uv"                  # Python package & project manager (pip/venv/pipx replacement)
