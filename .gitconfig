@@ -36,8 +36,8 @@
 [gpg]
   format = ssh
 
-[user]
-  signingkey = ~/.ssh/id_ed25519.pub
+# user.name, user.email, user.signingkey live in ~/.gitconfig.local
+# (device-specific — see scripts/setup/git-ssh.sh).
 
 [init]
   defaultBranch = main

@@ -103,6 +103,24 @@ else
   echo
 fi
 
+# ── Commit Signing Key ───────────────────────────────────────
+# Record the public key path for SSH commit signing (see .gitconfig
+# [commit] gpgsign = true + [gpg] format = ssh). Device-specific —
+# each machine has its own key with a device-suffixed name.
+if ! grep -q "signingkey =" "$GITCONFIG_LOCAL"; then
+  signing_pub=""
+  if [[ -n "${KEY_PATH:-}" && -f "$KEY_PATH.pub" ]]; then
+    signing_pub="$KEY_PATH.pub"
+  elif [[ ${#SSH_KEYS[@]} -gt 0 ]]; then
+    signing_pub="${SSH_KEYS[0]}.pub"
+  fi
+  if [[ -n "$signing_pub" && -f "$signing_pub" ]]; then
+    grep -q "\[user\]" "$GITCONFIG_LOCAL" || echo "[user]" >> "$GITCONFIG_LOCAL"
+    echo "  signingkey = $signing_pub" >> "$GITCONFIG_LOCAL"
+    ui_success "Signing key set: $(basename "$signing_pub")"
+  fi
+fi
+
 # ── Completion ───────────────────────────────────────────────
 ui_success "Git identity and SSH setup complete"
 echo
