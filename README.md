@@ -87,7 +87,8 @@ and `.zshrc`). Change a path there and it propagates everywhere.
 | Language runtimes | mise | `.mise.toml` |
 | Shell plugins | Zinit | `.zshrc` |
 | Prompt | Starship | `.config/starship.toml` |
-| Terminal | WezTerm | `.config/wezterm/wezterm.lua` |
+| Terminal (Windows/WSL) | WezTerm | `.config/wezterm/wezterm.lua` |
+| Terminal (macOS/Fedora) | Ghostty | `.config/ghostty/config` |
 | Configs | Symlinks | `scripts/setup/symlinks.sh` |
 
 ---
@@ -172,7 +173,7 @@ for testing.
 - **Symlinks only where necessary** — PATH and env vars preferred where possible
 - **Gum UI library** — elegant terminal output with Gruvbox theme, ANSI fallback
 - **Cross-platform** — all scripts portable to macOS (Bash 3.2 + BSD tools), CI runs on both Linux and macOS
-- **Unified terminal config** — single `wezterm.lua` with platform detection, auto-synced to Windows on WSL
+- **Terminal split by platform** — WezTerm on Windows/WSL (auto-synced to the Windows side), Ghostty on macOS/Fedora; both share the Gruvbox Dark palette so tmux looks identical everywhere
 - **CI mode** — `DOTFILES_CI=1` skips interactive prompts for automated testing
 
 ---

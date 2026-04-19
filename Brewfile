@@ -42,3 +42,6 @@ brew "neovim"              # Modal editor
 
 # ── Language Tooling ──────────────────────────────────────────
 brew "uv"                  # Python package & project manager (pip/venv/pipx replacement)
+
+# ── Terminal (macOS only — Linux installs via dnf/copr/etc.) ──
+cask "ghostty" if OS.mac?  # Modern GPU-accelerated terminal (Mitchell Hashimoto)

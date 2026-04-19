@@ -1,0 +1,53 @@
+# ╭────────────────────────────────────────────────────────────╮
+# │                  Ghostty Configuration                     │
+# ╰────────────────────────────────────────────────────────────╯
+# Docs: https://ghostty.org/docs/config
+# Reload: cmd/ctrl+shift+, — or restart the terminal.
+
+# ── Theme ──────────────────────────────────────────────────────
+# Gruvbox Dark (medium) — matches the tmux status palette:
+#   bg=#3c3836 fg=#ebdbb2 green=#b8bb26 yellow=#fabd2f
+#   gray=#928374 orange=#d79921 border=#504945
+theme = Gruvbox Dark
+
+# ── Font ───────────────────────────────────────────────────────
+# Fallback chain mirrors WezTerm. First match wins.
+font-family = JetBrainsMono Nerd Font
+font-family = JetBrains Mono
+font-family = CaskaydiaCove Nerd Font
+font-size = 13
+
+# ── Cursor ─────────────────────────────────────────────────────
+cursor-style = bar
+cursor-style-blink = true
+
+# ── Window ─────────────────────────────────────────────────────
+window-padding-x = 10
+window-padding-y = 6
+window-padding-balance = true
+background-opacity = 0.95
+background-blur = 20
+
+# ── Shell ──────────────────────────────────────────────────────
+# Launch zsh as a login shell so .zprofile + .zshrc (Starship,
+# aliases, tmux helpers) always load, regardless of $SHELL or the
+# login shell recorded in /etc/passwd.
+command = zsh -l
+
+# ── Mouse ──────────────────────────────────────────────────────
+mouse-hide-while-typing = true
+
+# ── macOS ──────────────────────────────────────────────────────
+# Ignored on Linux; keeping them here for a single cross-platform file.
+macos-titlebar-style = tabs
+macos-option-as-alt = true
+
+# ── Keybindings (parity with WezTerm) ──────────────────────────
+# Most pane work happens inside tmux (prefix = C-a); these are the
+# native splits for when you want a tmux-less window.
+keybind = ctrl+alt+h=new_split:down
+keybind = ctrl+alt+v=new_split:right
+keybind = alt+left=goto_split:left
+keybind = alt+right=goto_split:right
+keybind = alt+up=goto_split:up
+keybind = alt+down=goto_split:down

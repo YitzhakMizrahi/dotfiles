@@ -56,6 +56,7 @@ SYMLINKS=(
   "~/.config/gh/config.yml|~/.dotfiles/.config/gh/config.yml"
   "~/.config/lazygit/config.yml|~/.dotfiles/.config/lazygit/config.yml"
   "~/.config/wezterm/wezterm.lua|~/.dotfiles/.config/wezterm/wezterm.lua"
+  "~/.config/ghostty/config.ghostty|~/.dotfiles/.config/ghostty/config"
 )
 
 # ── Main ──────────────────────────────────────────────────────
