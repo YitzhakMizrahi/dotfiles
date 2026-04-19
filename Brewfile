@@ -36,6 +36,7 @@ brew "btop"                # System monitor
 brew "starship"            # Cross-shell prompt
 brew "tldr"                # Simplified man pages
 brew "fastfetch"           # System info (replaces neofetch)
+brew "ffmpeg"              # Audio/video swiss-army knife (transcoding, thumbs, capture, transitive dep of yt-dlp, whisper, etc.)
 
 # ── Editor ────────────────────────────────────────────────────
 brew "neovim"              # Modal editor
