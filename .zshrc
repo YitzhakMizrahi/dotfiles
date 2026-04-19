@@ -33,6 +33,7 @@ _zshrc_timing_log "zinit"
 
 # 🌍 ── Environment ───────────────────────────────────────────────────
 export TERM="xterm-256color"
+export CLAUDE_CODE_NO_FLICKER=1   # flicker-free rendering in tmux + line-by-line streaming
 
 path_prepend() {
   [[ -d "$1" ]] || return 0
