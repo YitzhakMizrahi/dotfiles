@@ -98,23 +98,24 @@ _zshrc_timing_log "mise"
 #
 # ssh-add -l exit codes: 0 = keys loaded, 1 = none loaded, 2 = no agent.
 
-# Adopt gcr-ssh-agent's socket if the session didn't export SSH_AUTH_SOCK
-# for us (covers a known GNOME v46+ regression).
-if [[ -z "${SSH_AUTH_SOCK:-}" && -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]]; then
-  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
-fi
-
-# If no agent is reachable, spawn one at a stable path.
+# If current agent isn't reachable (unset/stale SSH_AUTH_SOCK), try to
+# adopt gcr-ssh-agent first; only spawn our own as a last resort. This
+# also self-heals stale /tmp/ssh-*/agent.* paths inherited from a parent
+# shell that predates this file.
 ssh-add -l >/dev/null 2>&1
 if [[ $? -eq 2 ]]; then
-  _ssh_sock="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/ssh-agent.sock"
-  export SSH_AUTH_SOCK="$_ssh_sock"
-  ssh-add -l >/dev/null 2>&1
-  if [[ $? -eq 2 ]]; then
-    rm -f "$_ssh_sock" 2>/dev/null
-    ssh-agent -a "$_ssh_sock" >/dev/null
+  if [[ -S "${XDG_RUNTIME_DIR:-}/gcr/ssh" ]]; then
+    export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/gcr/ssh"
+  else
+    _ssh_sock="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/ssh-agent.sock"
+    export SSH_AUTH_SOCK="$_ssh_sock"
+    ssh-add -l >/dev/null 2>&1
+    if [[ $? -eq 2 ]]; then
+      rm -f "$_ssh_sock" 2>/dev/null
+      ssh-agent -a "$_ssh_sock" >/dev/null
+    fi
+    unset _ssh_sock
   fi
-  unset _ssh_sock
 fi
 
 alias addkey='ssh-add "$(find ~/.ssh -maxdepth 1 -name "id_ed25519*" ! -name "*.pub" | head -1)"'
