@@ -126,6 +126,11 @@ alias ls='eza --group-directories-first --icons=always'
 alias ll='ls -l'
 alias la='ls -A'
 alias lla='ls -lA'
+# bat with pager off + plain style — syntax-coloured when printing to a
+# terminal, identical to cat when piped/redirected (bat auto-detects isatty).
+# rg/fd/dust/duf are intentionally NOT aliased: semantics differ enough that
+# scripts and muscle memory from docs would silently misbehave.
+alias cat='bat --paging=never --style=plain'
 _zshrc_timing_log "file nav aliases"
 
 # 🐳 ── Aliases: Docker ───────────────────────────────────────────────
